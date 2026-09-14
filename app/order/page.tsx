@@ -1,31 +1,39 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { MENU, type MenuItem } from "@/lib/menu";
 
 type CartLine = {
-  key: string;
+  uid: number;
   id: string;
   name: string;
   variantLabel?: string;
   unit: number;
   qty: number;
+  forName: string;
 };
 
 function money(n: number) {
   return `$${n.toFixed(2)}`;
 }
 
+let LINE_UID = 0;
+
 export default function OrderPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [variantSel, setVariantSel] = useState<Record<string, string>>({});
+  const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">(
+    "pickup"
+  );
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
     pickupTime: "",
+    address: "",
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -49,37 +57,46 @@ export default function OrderPage() {
       variantLabel = v.label;
       unit = v.price;
     }
-    const key = `${item.id}::${variantLabel ?? ""}`;
-    setCart((prev) => {
-      const existing = prev.find((l) => l.key === key);
-      if (existing) {
-        return prev.map((l) =>
-          l.key === key ? { ...l, qty: l.qty + 1 } : l
-        );
-      }
-      return [
-        ...prev,
-        { key, id: item.id, name: item.name, variantLabel, unit, qty: 1 },
-      ];
-    });
+    setCart((prev) => [
+      ...prev,
+      {
+        uid: ++LINE_UID,
+        id: item.id,
+        name: item.name,
+        variantLabel,
+        unit,
+        qty: 1,
+        forName: "",
+      },
+    ]);
   }
 
-  function changeQty(key: string, delta: number) {
+  function changeQty(uid: number, delta: number) {
     setCart((prev) =>
       prev
-        .map((l) => (l.key === key ? { ...l, qty: l.qty + delta } : l))
+        .map((l) => (l.uid === uid ? { ...l, qty: l.qty + delta } : l))
         .filter((l) => l.qty > 0)
     );
   }
 
-  function removeLine(key: string) {
-    setCart((prev) => prev.filter((l) => l.key !== key));
+  function setForName(uid: number, value: string) {
+    setCart((prev) =>
+      prev.map((l) => (l.uid === uid ? { ...l, forName: value } : l))
+    );
+  }
+
+  function removeLine(uid: number) {
+    setCart((prev) => prev.filter((l) => l.uid !== uid));
   }
 
   async function submit() {
     setError("");
     if (!form.name.trim() || !form.phone.trim()) {
-      setError("Please add your name and a phone number for pickup.");
+      setError("Please add your name and a phone number.");
+      return;
+    }
+    if (fulfillment === "delivery" && !form.address.trim()) {
+      setError("Please add a delivery address.");
       return;
     }
     if (cart.length === 0) {
@@ -93,10 +110,12 @@ export default function OrderPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          fulfillment,
           items: cart.map((l) => ({
             id: l.id,
             variantLabel: l.variantLabel,
             qty: l.qty,
+            forName: l.forName,
           })),
         }),
       });
@@ -123,12 +142,16 @@ export default function OrderPage() {
           <h2>Order Received</h2>
           <p>
             Thanks! Your order <span className="oid">{done.orderId}</span> is in.
-            We&apos;ll have it ready at the skyway counter, Suite #220.
+            {fulfillment === "delivery"
+              ? " We'll call to confirm delivery details and payment."
+              : " We'll have it ready at the skyway counter, Suite #220."}
           </p>
           <p>
-            {done.mode === "pay_at_pickup"
-              ? "Pay at the counter when you pick up. Usually ready in about 15 minutes."
-              : "Payment confirmed. Usually ready in about 15 minutes."}
+            {fulfillment === "delivery"
+              ? "Usually out the door within about 15 minutes of confirmation."
+              : done.mode === "pay_at_pickup"
+                ? "Pay at the counter when you pick up. Usually ready in about 15 minutes."
+                : "Payment confirmed. Usually ready in about 15 minutes."}
           </p>
           <p>
             Questions? Call <a href="tel:16123418007">(612) 341-8007</a>.
@@ -145,12 +168,18 @@ export default function OrderPage() {
 
       <div className="page-intro">
         <div className="wrap">
-          <p className="eyebrow">Order for pickup</p>
+          <p className="eyebrow">Order now · pickup or delivery</p>
           <h1>Build Your Order</h1>
           <p>
-            Add what you&apos;d like and pick it up at the skyway counter, Suite
-            #220 — usually ready in about 15 minutes. Sandwiches come with chips
-            and a pickle; soups and salads come with a popover.
+            Add what you&apos;d like, then choose pickup at the skyway counter or
+            delivery — usually ready in about 15 minutes. Sandwiches come with
+            chips and a pickle; soups and salads come with a popover.
+          </p>
+          <p style={{ marginTop: 12, fontSize: ".92rem" }}>
+            Ordering for 8 or more?{" "}
+            <Link href="/catering" style={{ color: "var(--burgundy)", fontWeight: 700 }}>
+              Go to catering →
+            </Link>
           </p>
         </div>
       </div>
@@ -220,25 +249,47 @@ export default function OrderPage() {
 
           <aside className="cart">
             <h2>Your Order</h2>
+            <div className="fulfill" role="group" aria-label="Pickup or delivery">
+              <button
+                type="button"
+                className={fulfillment === "pickup" ? "on" : ""}
+                onClick={() => setFulfillment("pickup")}
+              >
+                Pickup
+              </button>
+              <button
+                type="button"
+                className={fulfillment === "delivery" ? "on" : ""}
+                onClick={() => setFulfillment("delivery")}
+              >
+                Delivery
+              </button>
+            </div>
             {cart.length === 0 ? (
               <p className="empty">Nothing added yet. Pick something tasty.</p>
             ) : (
               <>
                 {cart.map((l) => (
-                  <div className="cart-line" key={l.key}>
-                    <div>
+                  <div className="cart-line" key={l.uid}>
+                    <div style={{ flex: 1 }}>
                       <div className="l-name">
                         {l.name}
                         {l.variantLabel ? ` — ${l.variantLabel}` : ""}
                       </div>
+                      <input
+                        className="for-name"
+                        value={l.forName}
+                        onChange={(e) => setForName(l.uid, e.target.value)}
+                        placeholder="For (name) — optional"
+                      />
                       <div className="qty">
-                        <button onClick={() => changeQty(l.key, -1)}>−</button>
+                        <button onClick={() => changeQty(l.uid, -1)}>−</button>
                         <span>{l.qty}</span>
-                        <button onClick={() => changeQty(l.key, 1)}>+</button>
+                        <button onClick={() => changeQty(l.uid, 1)}>+</button>
                       </div>
                       <button
                         className="l-remove"
-                        onClick={() => removeLine(l.key)}
+                        onClick={() => removeLine(l.uid)}
                       >
                         remove
                       </button>
@@ -252,7 +303,11 @@ export default function OrderPage() {
                   <span>Subtotal</span>
                   <span>{money(total)}</span>
                 </div>
-                <div className="tax-note">Tax added at the register.</div>
+                <div className="tax-note">
+                  {fulfillment === "delivery"
+                    ? "Tax and any delivery fee confirmed by the deli."
+                    : "Tax added at the register."}
+                </div>
 
                 <div className="field">
                   <label>Name *</label>
@@ -277,7 +332,7 @@ export default function OrderPage() {
                     />
                   </div>
                   <div>
-                    <label>Pickup time</label>
+                    <label>{fulfillment === "delivery" ? "Time" : "Pickup time"}</label>
                     <input
                       value={form.pickupTime}
                       onChange={(e) =>
@@ -287,6 +342,18 @@ export default function OrderPage() {
                     />
                   </div>
                 </div>
+                {fulfillment === "delivery" && (
+                  <div className="field">
+                    <label>Delivery address *</label>
+                    <textarea
+                      value={form.address}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, address: e.target.value }))
+                      }
+                      placeholder="Street address, suite/floor, company…"
+                    />
+                  </div>
+                )}
                 <div className="field">
                   <label>Email (for a receipt)</label>
                   <input
@@ -316,7 +383,11 @@ export default function OrderPage() {
                   onClick={submit}
                   disabled={submitting}
                 >
-                  {submitting ? "Sending…" : "Place Pickup Order"}
+                  {submitting
+                    ? "Sending…"
+                    : fulfillment === "delivery"
+                      ? "Place Delivery Order"
+                      : "Place Pickup Order"}
                 </button>
               </>
             )}

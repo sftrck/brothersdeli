@@ -283,3 +283,37 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
   .tl-grid{grid-template-columns:1fr 1fr}
   .story-photos{grid-template-columns:1fr 1fr}
 }
+
+/* Per-item name on order lines */
+.for-name{width:100%;margin-top:6px;font-family:var(--body);font-size:.82rem;padding:6px 9px;border-radius:8px;border:1px dashed var(--line);background:var(--paper);color:var(--ink)}
+.for-name::placeholder{color:var(--ink-soft)}
+
+/* ============ Catering estimate builder ============ */
+.headcount-bar{background:var(--green-deep);color:var(--paper);border-radius:16px;padding:22px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:var(--shadow-sm)}
+.headcount-bar label{font-family:var(--display);text-transform:uppercase;font-size:1.2rem;letter-spacing:.02em}
+.headcount-bar input{width:110px;font-family:var(--body);font-size:1.1rem;font-weight:700;padding:11px 14px;border-radius:10px;border:1px solid rgba(246,241,231,.4);background:var(--paper);color:var(--ink)}
+.headcount-bar .hint{font-size:.86rem;color:rgba(246,241,231,.8)}
+.cater-select .grp{margin-top:30px}
+.cater-select .grp h2{font-family:var(--display);text-transform:uppercase;font-size:1.5rem;color:var(--green-deep);margin-bottom:12px}
+.crow{display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--line-soft);border-radius:12px;background:var(--paper-2);margin-bottom:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.crow:hover{border-color:var(--line)}
+.crow.sel{border-color:var(--green);background:#fff}
+.crow input[type=checkbox]{width:20px;height:20px;accent-color:var(--green-deep);flex-shrink:0}
+.crow .ci{flex:1;min-width:0}
+.crow .ci .cn{font-weight:700;font-size:.98rem}
+.crow .ci .cd{color:var(--ink-soft);font-size:.84rem;margin-top:2px}
+.crow .cp{font-weight:800;color:var(--green-deep);white-space:nowrap;text-align:right}
+.crow .cp small{display:block;font-weight:600;color:var(--ink-soft);font-size:.72rem}
+.est-summary{position:sticky;top:100px;background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow-sm)}
+.est-summary h3{font-family:var(--display);text-transform:uppercase;font-size:1.4rem;color:var(--green-deep)}
+.est-line{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;padding:8px 0;border-top:1px solid var(--line-soft)}
+.est-line:first-of-type{border-top:none}
+.est-line .pp{color:var(--ink-soft)}
+.est-total{display:flex;justify-content:space-between;font-family:var(--display);font-size:1.5rem;color:var(--green-deep);margin-top:14px;padding-top:14px;border-top:2px solid var(--line)}
+.est-note{font-size:.78rem;color:var(--ink-soft);margin-top:6px}
+.est-empty{color:var(--ink-soft);font-size:.9rem;margin-top:12px}
+
+/* Fulfillment (pickup / delivery) toggle on order screen */
+.fulfill{display:flex;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:16px}
+.fulfill button{flex:1;font-family:var(--body);font-weight:700;font-size:.9rem;padding:11px 8px;border-radius:8px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;transition:background .15s,color .15s}
+.fulfill button.on{background:var(--green-deep);color:var(--paper)}

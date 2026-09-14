@@ -8,12 +8,15 @@ type LineIn = {
   variantLabel?: string;
   qty: number;
   note?: string;
+  forName?: string;
 };
 type OrderIn = {
   name: string;
   phone: string;
   email?: string;
   pickupTime?: string;
+  fulfillment?: "pickup" | "delivery";
+  address?: string;
   notes?: string;
   items: LineIn[];
 };
@@ -46,7 +49,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Re-price on the server from the canonical menu — never trust client prices.
-  const lines: { label: string; qty: number; unit: number; note?: string }[] = [];
+  const lines: {
+    label: string;
+    qty: number;
+    unit: number;
+    note?: string;
+    forName?: string;
+  }[] = [];
   let total = 0;
   for (const l of body.items) {
     const item = findItem(l.id);
@@ -62,7 +71,13 @@ export async function POST(req: NextRequest) {
       label = `${item.name} — ${v.label}`;
     }
     total += unit * qty;
-    lines.push({ label, qty, unit, note: l.note?.trim() || undefined });
+    lines.push({
+      label,
+      qty,
+      unit,
+      note: l.note?.trim() || undefined,
+      forName: l.forName?.trim() || undefined,
+    });
   }
 
   if (lines.length === 0) {
@@ -74,40 +89,46 @@ export async function POST(req: NextRequest) {
 
   const orderId = `BD-${Date.now().toString(36).toUpperCase()}`;
   const mode = paymentMode();
+  const isDelivery = body.fulfillment === "delivery";
 
   const body_lines = lines
     .map(
       (l) =>
         `  ${l.qty} × ${l.label}  ${money(l.unit * l.qty)}` +
+        (l.forName ? `\n      for: ${l.forName}` : "") +
         (l.note ? `\n      note: ${l.note}` : "")
     )
     .join("\n");
 
   const text = [
-    `NEW PICKUP ORDER  ${orderId}`,
+    `NEW ${isDelivery ? "DELIVERY" : "PICKUP"} ORDER  ${orderId}`,
     ``,
+    `Method: ${isDelivery ? "DELIVERY" : "Pickup — skyway counter, Suite #220"}`,
     `Name:   ${name}`,
     `Phone:  ${phone}`,
     body.email ? `Email:  ${body.email}` : ``,
-    body.pickupTime ? `Pickup: ${body.pickupTime}` : ``,
+    isDelivery && body.address ? `Address: ${body.address.trim()}` : ``,
+    body.pickupTime ? `Time:   ${body.pickupTime}` : ``,
     ``,
     `Items:`,
     body_lines,
     ``,
     `Subtotal: ${money(total)}`,
-    `(Tax applied at the register.)`,
+    isDelivery
+      ? `(Tax and any delivery fee added by the deli.)`
+      : `(Tax applied at the register.)`,
     ``,
     body.notes ? `Order notes: ${body.notes}` : ``,
     ``,
     mode === "pay_at_pickup"
-      ? `Payment: PAY AT PICKUP (POS). Customer has not prepaid.`
+      ? `Payment: PAY AT ${isDelivery ? "DELIVERY / by phone" : "PICKUP (POS)"}. Customer has not prepaid.`
       : `Payment: prepaid online.`,
   ]
     .filter(Boolean)
     .join("\n");
 
   const email = await sendDeliEmail({
-    subject: `New pickup order ${orderId} — ${name}`,
+    subject: `New ${isDelivery ? "delivery" : "pickup"} order ${orderId} — ${name}`,
     text,
     replyTo: body.email || undefined,
   });

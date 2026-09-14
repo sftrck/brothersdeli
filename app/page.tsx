@@ -21,7 +21,7 @@ export default function Home() {
             </p>
             <div className="cta-row">
               <Link className="btn btn-primary" href="/order">
-                Order Pickup or Takeout
+                Order Now
               </Link>
               <Link className="btn btn-ghost" href="/menu">
                 View Full Menu
@@ -244,7 +244,7 @@ export default function Home() {
             </span>
             <div className="cta-row">
               <Link className="btn btn-primary" href="/order">
-                Order Pickup
+                Order Now
               </Link>
               <a
                 className="btn btn-ghost"
@@ -307,7 +307,7 @@ export default function Home() {
               Call (612) 341-8007
             </a>
             <Link className="btn btn-light" href="/order">
-              Order Online
+              Order Now
             </Link>
           </div>
         </div>

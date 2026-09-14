@@ -1,66 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { CATERING, CATERING_MIN_HEADCOUNT, findCateringItem } from "@/lib/catering";
 
-const OFFERINGS: { group: string; items: { name: string; desc?: string; price: string }[] }[] = [
-  {
-    group: "Breakfast Trays",
-    items: [
-      { name: "Bagel Tray", desc: "Fresh bagels, cream cheese, strawberry jam, sweet butter", price: "$5.95/person" },
-      { name: "Muffins & Bagels Tray", desc: "Baked muffins and bagels, butter and cream cheese", price: "$5.95/person" },
-      { name: "Breakfast Tray", desc: "Cinnamon & caramel rolls, muffins, coffee cake, bagels", price: "$5.95/person" },
-      { name: "Bagel & Egg Sandwich Tray", desc: "Egg, cheese, ham, sausage, bacon", price: "$9.45/person" },
-    ],
-  },
-  {
-    group: "Hot Lunches",
-    items: [
-      { name: "Homemade Sloppy Joe", desc: "Coleslaw, chips and pickles", price: "$15.99/person" },
-      { name: "Rosemary Chicken", desc: "Red potatoes, green beans, rolls and butter", price: "$15.99/person" },
-      { name: "Hot Turkey Meal", desc: "Garlic mashed potatoes, gravy, rolls, salad", price: "$15.99/person" },
-      { name: "BBQ Beef or Pork", desc: "Coleslaw, chips, pickles", price: "$15.99/person" },
-      { name: "Taco Bar", desc: "Chicken, ground beef, all the fixings, buffet style", price: "$15.99/person" },
-    ],
-  },
-  {
-    group: "Box Lunches",
-    items: [
-      { name: "Budget Box Lunch", desc: "Deli sandwich, chips and a sweet", price: "$15.99" },
-      { name: "Deluxe Box Lunch", desc: "Any sandwich, apple, potato salad or chips, and a sweet", price: "$17.99" },
-      { name: "Salad Box Lunch", desc: "Any salad with a popover, apple and a sweet", price: "$17.99" },
-    ],
-  },
-  {
-    group: "Deli & Bakery Trays",
-    items: [
-      { name: "Sandwich Tray", desc: "Variety of sandwiches, cheese, dills, potato salad or slaw", price: "$13.99/person" },
-      { name: "Meat & Cheese Tray", desc: "Corned beef, roast beef, ham, turkey, cheeses, dills, bread", price: "$12.99/person" },
-      { name: "Salad Tray", desc: "Any of our salads with popovers", price: "$12.99/person" },
-      { name: "Fresh Fruit / Vegetable Tray", price: "$5.95/person" },
-      { name: "Cookies / Brownies & Bars", price: "$4.45–$6.95" },
-    ],
-  },
-];
+function money(n: number) {
+  return `$${n.toFixed(2)}`;
+}
 
 export default function CateringPage() {
+  const [headcount, setHeadcount] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
     eventDate: "",
-    headcount: "",
-    service: "Box lunches",
     details: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<null | { inquiryId: string }>(null);
+  const [done, setDone] = useState<null | { inquiryId: string; total: number }>(
+    null
+  );
+
+  const heads = Math.max(0, Math.floor(Number(headcount) || 0));
+
+  const selectedItems = useMemo(
+    () =>
+      Array.from(selected)
+        .map((id) => findCateringItem(id))
+        .filter((x): x is NonNullable<typeof x> => Boolean(x)),
+    [selected]
+  );
+
+  const perPersonSum = selectedItems.reduce((s, it) => s + it.perPerson, 0);
+  const total = heads * perPersonSum;
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   async function submit() {
     setError("");
+    if (heads < CATERING_MIN_HEADCOUNT) {
+      setError(`Catering has an ${CATERING_MIN_HEADCOUNT}-person minimum — enter your headcount.`);
+      return;
+    }
+    if (selectedItems.length === 0) {
+      setError("Pick at least one item for your estimate.");
+      return;
+    }
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
       setError("Please add your name, email, and phone.");
       return;
@@ -70,14 +67,18 @@ export default function CateringPage() {
       const res = await fetch("/api/catering", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          headcount: heads,
+          items: selectedItems.map((it) => it.id),
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setError(data.error || "Something went wrong. Please email us directly.");
         return;
       }
-      setDone({ inquiryId: data.inquiryId });
+      setDone({ inquiryId: data.inquiryId, total: data.total });
     } catch {
       setError("Network error. Please email thedeli@thebrothersdeli.com.");
     } finally {
@@ -94,9 +95,15 @@ export default function CateringPage() {
           <p className="eyebrow">Catering for 8 or more</p>
           <h1>Cater Your Office</h1>
           <p>
-            The same corned beef, pastrami, and popovers — set up for the whole
-            room. Tell us about your event and we&apos;ll put together a quote.
-            Catering needs 24 hours&apos; notice and an 8-person minimum.
+            Tell us how many people, pick what you&apos;d like, and we&apos;ll
+            build the estimate — then send it over for a quote. Catering needs 24
+            hours&apos; notice and an {CATERING_MIN_HEADCOUNT}-person minimum.
+          </p>
+          <p style={{ marginTop: 12, fontSize: ".92rem" }}>
+            Ordering for yourself or a small group?{" "}
+            <a href="/order" style={{ color: "var(--burgundy)", fontWeight: 700 }}>
+              Order now →
+            </a>
           </p>
         </div>
       </div>
@@ -104,41 +111,110 @@ export default function CateringPage() {
       <div className="cater-page">
         <div className="wrap">
           <div className="cater-cols">
-            <div>
-              {OFFERINGS.map((g) => (
-                <div key={g.group}>
-                  <h2>{g.group}</h2>
-                  {g.items.map((it) => (
-                    <div className="offer" key={it.name}>
-                      <div>
-                        <div className="oname">{it.name}</div>
-                        {it.desc && <div className="odesc">{it.desc}</div>}
-                      </div>
-                      <div className="oprice">{it.price}</div>
-                    </div>
-                  ))}
+            <div className="cater-select">
+              <div className="headcount-bar">
+                <label htmlFor="headcount">How many people?</label>
+                <input
+                  id="headcount"
+                  value={headcount}
+                  onChange={(e) =>
+                    setHeadcount(e.target.value.replace(/[^0-9]/g, ""))
+                  }
+                  placeholder="e.g. 20"
+                  inputMode="numeric"
+                />
+                <span className="hint">
+                  {CATERING_MIN_HEADCOUNT}-person minimum. Prices below are per
+                  person.
+                </span>
+              </div>
+
+              {CATERING.map((g) => (
+                <div className="grp" key={g.id}>
+                  <h2>{g.name}</h2>
+                  {g.items.map((it) => {
+                    const sel = selected.has(it.id);
+                    return (
+                      <label
+                        className={`crow${sel ? " sel" : ""}`}
+                        key={it.id}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={sel}
+                          onChange={() => toggle(it.id)}
+                        />
+                        <div className="ci">
+                          <div className="cn">{it.name}</div>
+                          {it.desc && <div className="cd">{it.desc}</div>}
+                        </div>
+                        <div className="cp">
+                          {money(it.perPerson)}
+                          <small>per person</small>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               ))}
-              <a className="pdf-link" href="/catering-menu.pdf" target="_blank" rel="noopener">
+
+              <a
+                className="pdf-link"
+                href="/catering-menu.pdf"
+                target="_blank"
+                rel="noopener"
+              >
                 Download the full catering menu (PDF) →
               </a>
             </div>
 
-            <div className="cater-form">
+            <div className="est-summary">
               {done ? (
                 <>
                   <h3>Request Sent</h3>
-                  <p className="mini">
-                    Thanks! Your inquiry{" "}
-                    <b>{done.inquiryId}</b> is in — we&apos;ll get back to you
-                    shortly to finalize the details. For anything urgent, call{" "}
+                  <p className="mini" style={{ marginTop: 10 }}>
+                    Thanks! Your catering request <b>{done.inquiryId}</b> is in —
+                    estimated <b>{money(done.total)}</b> for {heads} people.
+                    We&apos;ll confirm the details and finalize your quote. For
+                    anything urgent, call{" "}
                     <a href="tel:16123418007">(612) 341-8007</a>.
                   </p>
                 </>
               ) : (
                 <>
-                  <h3>Request a Quote</h3>
-                  <p className="mini">We&apos;ll reply by email or phone.</p>
+                  <h3>Your Estimate</h3>
+
+                  {selectedItems.length === 0 ? (
+                    <p className="est-empty">
+                      Select items and enter a headcount to see your estimate.
+                    </p>
+                  ) : (
+                    <>
+                      {selectedItems.map((it) => (
+                        <div className="est-line" key={it.id}>
+                          <span>
+                            {it.name}
+                            <span className="pp">
+                              {" "}
+                              · {money(it.perPerson)}/pp
+                            </span>
+                          </span>
+                          <span>
+                            {heads > 0 ? money(it.perPerson * heads) : "—"}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="est-total">
+                        <span>{heads > 0 ? `${heads} people` : "Total"}</span>
+                        <span>{money(total)}</span>
+                      </div>
+                      <div className="est-note">
+                        Estimate only — {money(perPersonSum)} per person ×{" "}
+                        {heads || 0}. Final quote confirmed by the deli. Tax and
+                        any delivery not included.
+                      </div>
+                    </>
+                  )}
 
                   <div className="field">
                     <label>Name *</label>
@@ -165,14 +241,14 @@ export default function CateringPage() {
                       />
                     </div>
                   </div>
-                  <div className="field">
-                    <label>Company / group</label>
-                    <input
-                      value={form.company}
-                      onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
-                    />
-                  </div>
                   <div className="field row">
+                    <div>
+                      <label>Company / group</label>
+                      <input
+                        value={form.company}
+                        onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                      />
+                    </div>
                     <div>
                       <label>Event date</label>
                       <input
@@ -181,35 +257,13 @@ export default function CateringPage() {
                         onChange={(e) => setForm((f) => ({ ...f, eventDate: e.target.value }))}
                       />
                     </div>
-                    <div>
-                      <label>Headcount</label>
-                      <input
-                        value={form.headcount}
-                        onChange={(e) => setForm((f) => ({ ...f, headcount: e.target.value }))}
-                        placeholder="e.g. 20"
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label>Type of service</label>
-                    <select
-                      value={form.service}
-                      onChange={(e) => setForm((f) => ({ ...f, service: e.target.value }))}
-                    >
-                      <option>Breakfast trays</option>
-                      <option>Hot lunch</option>
-                      <option>Box lunches</option>
-                      <option>Deli &amp; bakery trays</option>
-                      <option>Not sure yet</option>
-                    </select>
                   </div>
                   <div className="field">
                     <label>Details</label>
                     <textarea
                       value={form.details}
                       onChange={(e) => setForm((f) => ({ ...f, details: e.target.value }))}
-                      placeholder="Delivery or pickup, dietary needs, budget, timing…"
+                      placeholder="Delivery or pickup, dietary needs, timing…"
                     />
                   </div>
 

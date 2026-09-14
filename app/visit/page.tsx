@@ -105,7 +105,7 @@ export default function VisitPage() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link className="btn btn-primary" href="/order">
-                  Order Pickup
+                  Order Now
                 </Link>
                 <Link className="btn btn-ghost" href="/menu">
                   See the Menu

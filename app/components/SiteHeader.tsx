@@ -29,7 +29,7 @@ export default function SiteHeader() {
               (612) 341-8007<span>Call the deli</span>
             </a>
             <Link className="btn btn-primary" href="/order">
-              Order Pickup
+              Order Now
             </Link>
           </div>
         </div>

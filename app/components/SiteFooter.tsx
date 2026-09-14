@@ -16,7 +16,7 @@ export default function SiteFooter() {
           <div className="foot-col">
             <h4>Explore</h4>
             <Link href="/menu">Menu</Link>
-            <Link href="/order">Order Online</Link>
+            <Link href="/order">Order Now</Link>
             <Link href="/catering">Catering</Link>
             <Link href="/our-story">Our Story</Link>
             <Link href="/visit">Visit &amp; Hours</Link>

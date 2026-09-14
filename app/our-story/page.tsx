@@ -50,7 +50,7 @@ export default function OurStoryPage() {
             </p>
             <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link className="btn btn-primary" href="/order">
-                Order Pickup
+                Order Now
               </Link>
               <Link className="btn btn-ghost" href="/visit">
                 Visit the Deli

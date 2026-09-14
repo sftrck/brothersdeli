@@ -30,7 +30,7 @@ export default function MenuPage() {
           </p>
           <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <Link className="btn btn-primary" href="/order">
-              Order Online
+              Order Now
             </Link>
             <a className="btn btn-ghost" href="tel:16123418007">
               Call (612) 341-8007
@@ -80,7 +80,7 @@ export default function MenuPage() {
 
         <div style={{ textAlign: "center", marginTop: 48 }}>
           <Link className="btn btn-primary" href="/order">
-            Start Your Order &rarr;
+            Order Now &rarr;
           </Link>
         </div>
       </div>

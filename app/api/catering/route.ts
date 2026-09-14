@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendDeliEmail } from "@/lib/email";
+import { findCateringItem, CATERING_MIN_HEADCOUNT } from "@/lib/catering";
 
 type CateringIn = {
   name: string;
@@ -7,10 +8,14 @@ type CateringIn = {
   phone: string;
   company?: string;
   eventDate?: string;
-  headcount?: string;
-  service?: string;
+  headcount?: number;
+  items?: string[];
   details?: string;
 };
+
+function money(n: number) {
+  return `$${n.toFixed(2)}`;
+}
 
 export async function POST(req: NextRequest) {
   let body: CateringIn;
@@ -30,31 +35,74 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const headcount = Math.max(0, Math.floor(Number(body.headcount) || 0));
+  if (headcount < CATERING_MIN_HEADCOUNT) {
+    return NextResponse.json(
+      { ok: false, error: `Catering has an ${CATERING_MIN_HEADCOUNT}-person minimum.` },
+      { status: 400 }
+    );
+  }
+
+  // Re-price on the server from the canonical catering menu.
+  const chosen = (Array.isArray(body.items) ? body.items : [])
+    .map((id) => findCateringItem(id))
+    .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+  if (chosen.length === 0) {
+    return NextResponse.json(
+      { ok: false, error: "Select at least one catering item." },
+      { status: 400 }
+    );
+  }
+
+  const perPersonSum = chosen.reduce((s, it) => s + it.perPerson, 0);
+  const total = perPersonSum * headcount;
+
   const inquiryId = `CAT-${Date.now().toString(36).toUpperCase()}`;
+  const itemLines = chosen
+    .map(
+      (it) =>
+        `  ${it.name}  ${money(it.perPerson)}/pp × ${headcount} = ${money(
+          it.perPerson * headcount
+        )}`
+    )
+    .join("\n");
+
   const text = [
-    `NEW CATERING INQUIRY  ${inquiryId}`,
+    `NEW CATERING REQUEST  ${inquiryId}`,
     ``,
     `Name:      ${name}`,
     `Email:     ${email}`,
     `Phone:     ${phone}`,
     body.company ? `Company:   ${body.company}` : ``,
     body.eventDate ? `Date:      ${body.eventDate}` : ``,
-    body.headcount ? `Headcount: ${body.headcount}` : ``,
-    body.service ? `Service:   ${body.service}` : ``,
+    `Headcount: ${headcount}`,
     ``,
-    `Details:`,
-    body.details?.trim() || "(none provided)",
+    `Items:`,
+    itemLines,
     ``,
-    `Reminder: catering needs 24 hours' notice, 8-person minimum.`,
+    `Per person: ${money(perPersonSum)}`,
+    `ESTIMATED TOTAL: ${money(total)}  (${headcount} people)`,
+    `(Estimate only — tax and delivery not included. Confirm final quote.)`,
+    ``,
+    body.details ? `Details: ${body.details}` : ``,
+    ``,
+    `Reminder: 24 hours' notice, ${CATERING_MIN_HEADCOUNT}-person minimum.`,
   ]
     .filter(Boolean)
     .join("\n");
 
   const emailRes = await sendDeliEmail({
-    subject: `Catering inquiry ${inquiryId} — ${name}`,
+    subject: `Catering request ${inquiryId} — ${name} (${headcount} ppl, ~${money(total)})`,
     text,
     replyTo: email,
   });
 
-  return NextResponse.json({ ok: true, inquiryId, emailSent: emailRes.sent });
+  return NextResponse.json({
+    ok: true,
+    inquiryId,
+    total,
+    headcount,
+    emailSent: emailRes.sent,
+  });
 }
