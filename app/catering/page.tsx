@@ -124,8 +124,8 @@ export default function CateringPage() {
                   inputMode="numeric"
                 />
                 <span className="hint">
-                  {CATERING_MIN_HEADCOUNT}-person minimum. Prices below are per
-                  person.
+                  {CATERING_MIN_HEADCOUNT}-person minimum. Prices below update
+                  for your headcount.
                 </span>
               </div>
 
@@ -149,8 +149,19 @@ export default function CateringPage() {
                           {it.desc && <div className="cd">{it.desc}</div>}
                         </div>
                         <div className="cp">
-                          {money(it.perPerson)}
-                          <small>per person</small>
+                          {heads > 0 ? (
+                            <>
+                              {money(it.perPerson * heads)}
+                              <small>
+                                {money(it.perPerson)}/pp × {heads}
+                              </small>
+                            </>
+                          ) : (
+                            <>
+                              {money(it.perPerson)}
+                              <small>per person</small>
+                            </>
+                          )}
                         </div>
                       </label>
                     );
