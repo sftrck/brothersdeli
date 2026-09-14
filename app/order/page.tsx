@@ -129,6 +129,13 @@ export default function OrderPage() {
       setError("Please add your name and a phone number.");
       return;
     }
+    if (
+      form.email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+    ) {
+      setError("Please enter a valid email (or leave it blank).");
+      return;
+    }
     if (fulfillment === "delivery" && !form.address.trim()) {
       setError("Please add a delivery address.");
       return;

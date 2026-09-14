@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendDeliEmail } from "@/lib/email";
 import { findCateringItem, CATERING_MIN_HEADCOUNT } from "@/lib/catering";
+import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
+
+const MAX_HEADCOUNT = 1000;
 
 type CateringIn = {
   name: string;
@@ -18,6 +21,13 @@ function money(n: number) {
 }
 
 export async function POST(req: NextRequest) {
+  if (rateLimited(req)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   let body: CateringIn;
   try {
     body = (await req.json()) as CateringIn;
@@ -25,28 +35,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Bad JSON" }, { status: 400 });
   }
 
-  const name = (body.name || "").trim();
-  const email = (body.email || "").trim();
-  const phone = (body.phone || "").trim();
+  const name = oneLine(body.name, 120);
+  const email = oneLine(body.email, 254);
+  const phone = oneLine(body.phone, 40);
   if (!name || !email || !phone) {
     return NextResponse.json(
       { ok: false, error: "Name, email, and phone are required." },
       { status: 400 }
     );
   }
-
-  const headcount = Math.max(0, Math.floor(Number(body.headcount) || 0));
-  if (headcount < CATERING_MIN_HEADCOUNT) {
+  if (!isEmail(email)) {
     return NextResponse.json(
-      { ok: false, error: `Catering has an ${CATERING_MIN_HEADCOUNT}-person minimum.` },
+      { ok: false, error: "Please enter a valid email." },
       { status: 400 }
     );
   }
 
-  // Re-price on the server from the canonical catering menu.
-  const chosen = (Array.isArray(body.items) ? body.items : [])
-    .map((id) => findCateringItem(id))
-    .filter((x): x is NonNullable<typeof x> => Boolean(x));
+  const headcount = Math.max(0, Math.floor(Number(body.headcount) || 0));
+  if (headcount < CATERING_MIN_HEADCOUNT || headcount > MAX_HEADCOUNT) {
+    return NextResponse.json(
+      { ok: false, error: `Headcount must be ${CATERING_MIN_HEADCOUNT}–${MAX_HEADCOUNT}.` },
+      { status: 400 }
+    );
+  }
+
+  // Re-price on the server from the canonical catering menu (cap + de-dupe ids).
+  const ids = (Array.isArray(body.items) ? body.items : []).slice(0, 100);
+  const seen = new Set<string>();
+  const chosen = ids
+    .map((id) => findCateringItem(String(id)))
+    .filter((x): x is NonNullable<typeof x> => {
+      if (!x || seen.has(x.id)) return false;
+      seen.add(x.id);
+      return true;
+    });
 
   if (chosen.length === 0) {
     return NextResponse.json(
@@ -74,8 +96,8 @@ export async function POST(req: NextRequest) {
     `Name:      ${name}`,
     `Email:     ${email}`,
     `Phone:     ${phone}`,
-    body.company ? `Company:   ${body.company}` : ``,
-    body.eventDate ? `Date:      ${body.eventDate}` : ``,
+    body.company ? `Company:   ${oneLine(body.company, 120)}` : ``,
+    body.eventDate ? `Date:      ${oneLine(body.eventDate, 40)}` : ``,
     `Headcount: ${headcount}`,
     ``,
     `Items:`,
@@ -85,7 +107,7 @@ export async function POST(req: NextRequest) {
     `ORDER TOTAL: ${money(total)}  (${headcount} people)`,
     `(Tax and delivery not included — confirm at checkout.)`,
     ``,
-    body.details ? `Details: ${body.details}` : ``,
+    body.details ? `Details: ${multiLine(body.details, 1500)}` : ``,
     ``,
     `Payment: customer directed to Payanywhere checkout.`,
     `Reminder: 24 hours' notice, ${CATERING_MIN_HEADCOUNT}-person minimum.`,

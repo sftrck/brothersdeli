@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
+import OpenStatus from "./components/OpenStatus";
 
 export default function Home() {
   return (
@@ -27,10 +28,7 @@ export default function Home() {
                 View Full Menu
               </Link>
             </div>
-            <div className="hours">
-              <span className="dot"></span> Open today &rsquo;til 1:30 PM ·
-              Mon–Fri
-            </div>
+            <OpenStatus />
           </div>
           <div className="hero-art">
             <div className="photo">

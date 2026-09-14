@@ -89,6 +89,10 @@ export default function CateringPage() {
       setError("Please add your name, email, and phone.");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setError("Please enter a valid email.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/catering", {

@@ -331,3 +331,6 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .co-total{display:flex;justify-content:space-between;font-family:var(--display);font-size:1.6rem;color:var(--green-deep);margin-top:14px;padding-top:14px;border-top:2px solid var(--line)}
 .co-note{font-size:.8rem;color:var(--ink-soft);margin-top:6px}
 .co-secure{text-align:center;font-size:.78rem;color:var(--ink-soft);margin-top:10px}
+
+/* Closed state for the open/closed indicator dot */
+.hours .dot.closed{background:var(--ink-soft);box-shadow:0 0 0 4px rgba(91,82,74,.18)}

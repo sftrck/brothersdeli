@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { findItem } from "@/lib/menu";
 import { sendDeliEmail } from "@/lib/email";
 import { paymentMode } from "@/lib/payment";
+import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
+
+const MAX_LINES = 100;
 
 type LineIn = {
   id: string;
@@ -26,6 +29,13 @@ function money(n: number) {
 }
 
 export async function POST(req: NextRequest) {
+  if (rateLimited(req)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   let body: OrderIn;
   try {
     body = (await req.json()) as OrderIn;
@@ -33,11 +43,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Bad JSON" }, { status: 400 });
   }
 
-  const name = (body.name || "").trim();
-  const phone = (body.phone || "").trim();
+  const name = oneLine(body.name, 120);
+  const phone = oneLine(body.phone, 40);
+  const email = oneLine(body.email, 254);
   if (!name || !phone) {
     return NextResponse.json(
       { ok: false, error: "Name and phone are required." },
+      { status: 400 }
+    );
+  }
+  if (email && !isEmail(email)) {
+    return NextResponse.json(
+      { ok: false, error: "Please enter a valid email." },
       { status: 400 }
     );
   }
@@ -57,8 +74,8 @@ export async function POST(req: NextRequest) {
     forName?: string;
   }[] = [];
   let total = 0;
-  for (const l of body.items) {
-    const item = findItem(l.id);
+  for (const l of body.items.slice(0, MAX_LINES)) {
+    const item = findItem(String(l?.id ?? ""));
     if (!item) continue;
     const qty = Math.max(1, Math.min(50, Math.floor(Number(l.qty) || 1)));
     let unit = item.price ?? 0;
@@ -75,8 +92,8 @@ export async function POST(req: NextRequest) {
       label,
       qty,
       unit,
-      note: l.note?.trim() || undefined,
-      forName: l.forName?.trim() || undefined,
+      note: oneLine(l.note, 200) || undefined,
+      forName: oneLine(l.forName, 60) || undefined,
     });
   }
 
@@ -106,9 +123,11 @@ export async function POST(req: NextRequest) {
     `Method: ${isDelivery ? "DELIVERY" : "Pickup — skyway counter, Suite #220"}`,
     `Name:   ${name}`,
     `Phone:  ${phone}`,
-    body.email ? `Email:  ${body.email}` : ``,
-    isDelivery && body.address ? `Address: ${body.address.trim()}` : ``,
-    body.pickupTime ? `Time:   ${body.pickupTime}` : ``,
+    email ? `Email:  ${email}` : ``,
+    isDelivery && body.address
+      ? `Address: ${multiLine(body.address, 300)}`
+      : ``,
+    body.pickupTime ? `Time:   ${oneLine(body.pickupTime, 60)}` : ``,
     ``,
     `Items:`,
     body_lines,
@@ -118,7 +137,7 @@ export async function POST(req: NextRequest) {
       ? `(Tax and any delivery fee added by the deli.)`
       : `(Tax applied at the register.)`,
     ``,
-    body.notes ? `Order notes: ${body.notes}` : ``,
+    body.notes ? `Order notes: ${multiLine(body.notes, 500)}` : ``,
     ``,
     mode === "hosted"
       ? `Payment: via Payanywhere checkout.`
@@ -127,10 +146,10 @@ export async function POST(req: NextRequest) {
     .filter(Boolean)
     .join("\n");
 
-  const email = await sendDeliEmail({
+  const emailRes = await sendDeliEmail({
     subject: `New ${isDelivery ? "delivery" : "pickup"} order ${orderId} — ${name}`,
     text,
-    replyTo: body.email || undefined,
+    replyTo: email || undefined,
   });
 
   return NextResponse.json({
@@ -138,6 +157,6 @@ export async function POST(req: NextRequest) {
     orderId,
     total,
     mode,
-    emailSent: email.sent,
+    emailSent: emailRes.sent,
   });
 }
