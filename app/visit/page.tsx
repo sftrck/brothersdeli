@@ -107,7 +107,7 @@ export default function VisitPage() {
                 <Link className="btn btn-primary" href="/order">
                   Order Now
                 </Link>
-                <Link className="btn btn-ghost" href="/menu">
+                <Link className="btn btn-ghost" href="/order">
                   See the Menu
                 </Link>
               </div>

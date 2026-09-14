@@ -317,3 +317,17 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .fulfill{display:flex;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:16px}
 .fulfill button{flex:1;font-family:var(--body);font-weight:700;font-size:.9rem;padding:11px 8px;border-radius:8px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;transition:background .15s,color .15s}
 .fulfill button.on{background:var(--green-deep);color:var(--paper)}
+
+/* ============ Checkout ============ */
+.checkout-card{background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:var(--shadow-sm)}
+.co-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.co-type{font-family:var(--display);text-transform:uppercase;font-size:1.5rem;color:var(--green-deep)}
+.co-id{font-family:ui-monospace,Menlo,monospace;font-size:.82rem;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);padding:3px 9px;border-radius:6px}
+.co-heads{color:var(--ink-soft);font-weight:600;margin-top:4px}
+.co-lines{margin-top:18px}
+.co-line{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line-soft);font-size:.94rem}
+.co-line:first-child{border-top:none}
+.co-detail{color:var(--ink-soft);font-size:.85rem}
+.co-total{display:flex;justify-content:space-between;font-family:var(--display);font-size:1.6rem;color:var(--green-deep);margin-top:14px;padding-top:14px;border-top:2px solid var(--line)}
+.co-note{font-size:.8rem;color:var(--ink-soft);margin-top:6px}
+.co-secure{text-align:center;font-size:.78rem;color:var(--ink-soft);margin-top:10px}

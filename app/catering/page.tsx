@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { CATERING, CATERING_MIN_HEADCOUNT, findCateringItem } from "@/lib/catering";
@@ -22,9 +23,7 @@ export default function CateringPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<null | { inquiryId: string; total: number }>(
-    null
-  );
+  const router = useRouter();
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
 
@@ -78,7 +77,25 @@ export default function CateringPage() {
         setError(data.error || "Something went wrong. Please email us directly.");
         return;
       }
-      setDone({ inquiryId: data.inquiryId, total: data.total });
+      // Hand the order to checkout (Payanywhere).
+      const pending = {
+        type: "Catering",
+        orderId: data.inquiryId,
+        headcount: heads,
+        total: data.total,
+        lines: selectedItems.map((it) => ({
+          name: it.name,
+          detail: `${money(it.perPerson)}/pp × ${heads}`,
+          amount: it.perPerson * heads,
+        })),
+        contact: { name: form.name, email: form.email, phone: form.phone },
+      };
+      try {
+        sessionStorage.setItem("bd_checkout", JSON.stringify(pending));
+      } catch {
+        /* ignore */
+      }
+      router.push("/checkout");
     } catch {
       setError("Network error. Please email thedeli@thebrothersdeli.com.");
     } finally {
@@ -95,9 +112,9 @@ export default function CateringPage() {
           <p className="eyebrow">Catering for 8 or more</p>
           <h1>Cater Your Office</h1>
           <p>
-            Tell us how many people, pick what you&apos;d like, and we&apos;ll
-            build the estimate — then send it over for a quote. Catering needs 24
-            hours&apos; notice and an {CATERING_MIN_HEADCOUNT}-person minimum.
+            Tell us how many people, pick what you&apos;d like, and check out
+            online. Catering needs 24 hours&apos; notice and an{" "}
+            {CATERING_MIN_HEADCOUNT}-person minimum.
           </p>
           <p style={{ marginTop: 12, fontSize: ".92rem" }}>
             Ordering for yourself or a small group?{" "}
@@ -180,20 +197,8 @@ export default function CateringPage() {
             </div>
 
             <div className="est-summary">
-              {done ? (
-                <>
-                  <h3>Request Sent</h3>
-                  <p className="mini" style={{ marginTop: 10 }}>
-                    Thanks! Your catering request <b>{done.inquiryId}</b> is in —
-                    estimated <b>{money(done.total)}</b> for {heads} people.
-                    We&apos;ll confirm the details and finalize your quote. For
-                    anything urgent, call{" "}
-                    <a href="tel:16123418007">(612) 341-8007</a>.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3>Your Estimate</h3>
+              <>
+                  <h3>Your Order</h3>
 
                   {selectedItems.length === 0 ? (
                     <p className="est-empty">
@@ -220,9 +225,8 @@ export default function CateringPage() {
                         <span>{money(total)}</span>
                       </div>
                       <div className="est-note">
-                        Estimate only — {money(perPersonSum)} per person ×{" "}
-                        {heads || 0}. Final quote confirmed by the deli. Tax and
-                        any delivery not included.
+                        {money(perPersonSum)} per person × {heads || 0}. Tax and
+                        any delivery confirmed by the deli at checkout.
                       </div>
                     </>
                   )}
@@ -281,10 +285,11 @@ export default function CateringPage() {
                   {error && <div className="form-err">{error}</div>}
 
                   <button className="submit-btn" onClick={submit} disabled={submitting}>
-                    {submitting ? "Sending…" : "Send Catering Request"}
+                    {submitting
+                      ? "Starting checkout…"
+                      : "Complete Catering Purchase"}
                   </button>
-                </>
-              )}
+              </>
             </div>
           </div>
         </div>

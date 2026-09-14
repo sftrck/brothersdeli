@@ -19,7 +19,7 @@ export default function SiteHeader() {
             <span className="est">EST. 1935 · MINNEAPOLIS</span>
           </Link>
           <nav className="main">
-            <Link href="/menu">Menu</Link>
+            <Link href="/order">Menu</Link>
             <Link href="/catering">Catering</Link>
             <Link href="/our-story">Our Story</Link>
             <Link href="/visit">Visit</Link>

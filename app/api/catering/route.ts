@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     .join("\n");
 
   const text = [
-    `NEW CATERING REQUEST  ${inquiryId}`,
+    `NEW CATERING ORDER  ${inquiryId}`,
     ``,
     `Name:      ${name}`,
     `Email:     ${email}`,
@@ -82,18 +82,19 @@ export async function POST(req: NextRequest) {
     itemLines,
     ``,
     `Per person: ${money(perPersonSum)}`,
-    `ESTIMATED TOTAL: ${money(total)}  (${headcount} people)`,
-    `(Estimate only — tax and delivery not included. Confirm final quote.)`,
+    `ORDER TOTAL: ${money(total)}  (${headcount} people)`,
+    `(Tax and delivery not included — confirm at checkout.)`,
     ``,
     body.details ? `Details: ${body.details}` : ``,
     ``,
+    `Payment: customer directed to Payanywhere checkout.`,
     `Reminder: 24 hours' notice, ${CATERING_MIN_HEADCOUNT}-person minimum.`,
   ]
     .filter(Boolean)
     .join("\n");
 
   const emailRes = await sendDeliEmail({
-    subject: `Catering request ${inquiryId} — ${name} (${headcount} ppl, ~${money(total)})`,
+    subject: `Catering order ${inquiryId} — ${name} (${headcount} ppl, ${money(total)})`,
     text,
     replyTo: email,
   });
