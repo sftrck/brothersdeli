@@ -23,7 +23,7 @@ export default function Home() {
               <Link className="btn btn-primary" href="/order">
                 Order Pickup or Takeout
               </Link>
-              <Link className="btn btn-ghost" href="/order">
+              <Link className="btn btn-ghost" href="/menu">
                 View Full Menu
               </Link>
             </div>
@@ -183,7 +183,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ textAlign: "center", marginTop: 44 }}>
-            <Link className="btn btn-ghost" href="/order">
+            <Link className="btn btn-ghost" href="/menu">
               See the Full Menu &rarr;
             </Link>
           </div>

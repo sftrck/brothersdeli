@@ -19,10 +19,10 @@ export default function SiteHeader() {
             <span className="est">EST. 1935 · MINNEAPOLIS</span>
           </Link>
           <nav className="main">
-            <Link href="/order">Menu</Link>
+            <Link href="/menu">Menu</Link>
             <Link href="/catering">Catering</Link>
-            <Link href="/#story">Our Story</Link>
-            <Link href="/#visit">Visit</Link>
+            <Link href="/our-story">Our Story</Link>
+            <Link href="/visit">Visit</Link>
           </nav>
           <div className="header-cta">
             <a className="phone" href="tel:16123418007">

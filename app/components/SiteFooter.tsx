@@ -15,10 +15,11 @@ export default function SiteFooter() {
           </div>
           <div className="foot-col">
             <h4>Explore</h4>
-            <Link href="/order">Menu &amp; Ordering</Link>
+            <Link href="/menu">Menu</Link>
+            <Link href="/order">Order Online</Link>
             <Link href="/catering">Catering</Link>
-            <Link href="/#story">Our Story</Link>
-            <Link href="/#visit">Visit &amp; Hours</Link>
+            <Link href="/our-story">Our Story</Link>
+            <Link href="/visit">Visit &amp; Hours</Link>
           </div>
           <div className="foot-col">
             <h4>Visit</h4>
