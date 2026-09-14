@@ -120,9 +120,9 @@ export async function POST(req: NextRequest) {
     ``,
     body.notes ? `Order notes: ${body.notes}` : ``,
     ``,
-    mode === "pay_at_pickup"
-      ? `Payment: PAY AT ${isDelivery ? "DELIVERY / by phone" : "PICKUP (POS)"}. Customer has not prepaid.`
-      : `Payment: prepaid online.`,
+    mode === "hosted"
+      ? `Payment: via Payanywhere checkout.`
+      : `Payment: Payanywhere checkout (being connected — confirm payment with customer).`,
   ]
     .filter(Boolean)
     .join("\n");

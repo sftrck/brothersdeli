@@ -156,7 +156,10 @@ export default function CheckoutPage() {
             </button>
             <p className="co-secure">Secure card checkout powered by Payanywhere.</p>
             <p style={{ textAlign: "center", marginTop: 12 }}>
-              <Link href="/catering" style={{ color: "var(--burgundy)", fontWeight: 700, fontSize: ".9rem" }}>
+              <Link
+                href={order.type === "Catering" ? "/catering" : "/order"}
+                style={{ color: "var(--burgundy)", fontWeight: 700, fontSize: ".9rem" }}
+              >
                 ← Edit order
               </Link>
             </p>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { MENU, type MenuItem } from "@/lib/menu";
@@ -38,9 +39,42 @@ export default function OrderPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<null | { orderId: string; mode: string }>(
-    null
-  );
+  const [loaded, setLoaded] = useState(false);
+  const router = useRouter();
+
+  // Restore a saved cart so items survive leaving the site or changing pages.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("bd_cart");
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (Array.isArray(saved.cart) && saved.cart.length) {
+          setCart(saved.cart as CartLine[]);
+          const maxUid = saved.cart.reduce(
+            (m: number, l: CartLine) => Math.max(m, l.uid || 0),
+            0
+          );
+          LINE_UID = Math.max(LINE_UID, maxUid);
+        }
+        if (saved.fulfillment === "pickup" || saved.fulfillment === "delivery") {
+          setFulfillment(saved.fulfillment);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    setLoaded(true);
+  }, []);
+
+  // Persist the cart on every change (only after the initial restore).
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem("bd_cart", JSON.stringify({ cart, fulfillment }));
+    } catch {
+      /* ignore */
+    }
+  }, [cart, fulfillment, loaded]);
 
   const total = useMemo(
     () => cart.reduce((s, l) => s + l.unit * l.qty, 0),
@@ -124,42 +158,34 @@ export default function OrderPage() {
         setError(data.error || "Something went wrong. Please call us to order.");
         return;
       }
-      setDone({ orderId: data.orderId, mode: data.mode });
-      setCart([]);
+      // Hand the order to checkout (Payanywhere).
+      const pending = {
+        type: fulfillment === "delivery" ? "Delivery" : "Pickup",
+        orderId: data.orderId,
+        total: data.total,
+        lines: cart.map((l) => ({
+          name: `${l.name}${l.variantLabel ? ` — ${l.variantLabel}` : ""}`,
+          detail: [
+            l.qty > 1 ? `qty ${l.qty}` : "",
+            l.forName ? `for ${l.forName}` : "",
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined,
+          amount: l.unit * l.qty,
+        })),
+        contact: { name: form.name, email: form.email, phone: form.phone },
+      };
+      try {
+        sessionStorage.setItem("bd_checkout", JSON.stringify(pending));
+      } catch {
+        /* ignore */
+      }
+      router.push("/checkout");
     } catch {
       setError("Network error. Please call (612) 341-8007 to order.");
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (done) {
-    return (
-      <>
-        <SiteHeader />
-        <div className="confirm">
-          <div className="tick">✓</div>
-          <h2>Order Received</h2>
-          <p>
-            Thanks! Your order <span className="oid">{done.orderId}</span> is in.
-            {fulfillment === "delivery"
-              ? " We'll call to confirm delivery details and payment."
-              : " We'll have it ready at the skyway counter, Suite #220."}
-          </p>
-          <p>
-            {fulfillment === "delivery"
-              ? "Usually out the door within about 15 minutes of confirmation."
-              : done.mode === "pay_at_pickup"
-                ? "Pay at the counter when you pick up. Usually ready in about 15 minutes."
-                : "Payment confirmed. Usually ready in about 15 minutes."}
-          </p>
-          <p>
-            Questions? Call <a href="tel:16123418007">(612) 341-8007</a>.
-          </p>
-        </div>
-        <SiteFooter />
-      </>
-    );
   }
 
   return (
@@ -383,11 +409,7 @@ export default function OrderPage() {
                   onClick={submit}
                   disabled={submitting}
                 >
-                  {submitting
-                    ? "Sending…"
-                    : fulfillment === "delivery"
-                      ? "Place Delivery Order"
-                      : "Place Pickup Order"}
+                  {submitting ? "Sending…" : "Continue to Checkout"}
                 </button>
               </>
             )}

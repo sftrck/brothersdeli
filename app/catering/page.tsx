@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -23,7 +23,35 @@ export default function CateringPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const router = useRouter();
+
+  // Restore a saved catering order so selections survive leaving the page.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("bd_catering");
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (typeof saved.headcount === "string") setHeadcount(saved.headcount);
+        if (Array.isArray(saved.selected)) setSelected(new Set(saved.selected));
+      }
+    } catch {
+      /* ignore */
+    }
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(
+        "bd_catering",
+        JSON.stringify({ headcount, selected: Array.from(selected) })
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [headcount, selected, loaded]);
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
 
