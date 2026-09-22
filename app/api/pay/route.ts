@@ -47,10 +47,11 @@ export async function POST(req: NextRequest) {
     // The browser uses these to mount North's Fields on the checkout page.
     return NextResponse.json({ ok: true, configured: true, session });
   } catch (e) {
-    console.error("[pay:error]", e);
-    return NextResponse.json(
-      { ok: false, error: "Couldn't start checkout. Please call the deli." },
-      { status: 500 }
-    );
+    // Embedded Checkout isn't fully wired yet (createCheckoutSession is a stub).
+    // Fall back to the interim payment link rather than erroring the checkout,
+    // so setting the North env vars early can't break payments. Once the Fields
+    // flow is implemented, a real failure here should surface to the customer.
+    console.error("[pay:not-ready]", e);
+    return NextResponse.json({ ok: true, configured: false });
   }
 }
