@@ -27,11 +27,12 @@ function recipient(): string {
 }
 
 function sender(): string {
-  if (process.env.ORDER_EMAIL_FROM) return process.env.ORDER_EMAIL_FROM;
-  const domain = process.env.brothersdeli_RESEND_EMAIL_DOMAIN;
-  if (domain) return `The Brothers Deli <orders@${domain}>`;
-  // Always-available Resend sender (delivers to the account owner only).
-  return "The Brothers Deli <onboarding@resend.dev>";
+  // Use an explicit verified sender when provided (e.g. once a real domain is
+  // verified in Resend: "The Brothers Deli <orders@thebrothersdeli.com>").
+  // Otherwise fall back to Resend's always-verified onboarding sender, which
+  // delivers only to the Resend account owner's address — good enough to get
+  // notifications flowing before a domain is verified.
+  return process.env.ORDER_EMAIL_FROM || "The Brothers Deli <onboarding@resend.dev>";
 }
 
 export type SendResult = { sent: boolean; id?: string; reason?: string };
