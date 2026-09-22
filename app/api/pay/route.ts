@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { paymentMode, createHostedPayment } from "@/lib/payment";
+import { paymentMode, createCheckoutSession } from "@/lib/payment";
 import { oneLine, rateLimited } from "@/lib/security";
 
 type PayIn = {
@@ -8,9 +8,9 @@ type PayIn = {
   description: string;
 };
 
-// Creates a Payanywhere hosted-checkout session and returns its URL.
-// Until the Payanywhere credentials are set, `configured` is false and the
-// caller shows a "payment being connected" state instead of redirecting.
+// Starts a North Embedded Checkout session for the order. Until North is
+// configured, `configured` is false and the checkout page shows a
+// "payment being connected" state instead of the card form.
 export async function POST(req: NextRequest) {
   if (rateLimited(req)) {
     return NextResponse.json(
@@ -39,14 +39,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { checkoutUrl } = await createHostedPayment({
+    const session = await createCheckoutSession({
       orderId: oneLine(body.orderId, 40),
       amount,
       description: oneLine(body.description, 140) || "The Brothers Deli",
     });
-    return NextResponse.json({ ok: true, configured: true, checkoutUrl });
+    // The browser uses these to mount North's Fields on the checkout page.
+    return NextResponse.json({ ok: true, configured: true, session });
   } catch (e) {
-    // Log the real error server-side; return a generic message to the client.
     console.error("[pay:error]", e);
     return NextResponse.json(
       { ok: false, error: "Couldn't start checkout. Please call the deli." },

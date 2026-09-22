@@ -53,11 +53,20 @@ The site is fully usable before any of it — this just turns features on.
    and add the DNS records Resend generates. Put `RESEND_API_KEY` (and the
    `ORDER_EMAIL_*` values) in Vercel. Orders and catering requests then email the deli.
 
-2. **Online prepayment (Payanywhere / North).** Payanywhere is mainly an in-person POS;
-   online payment uses its **hosted payment page**. Enable the online gateway on the
-   deli's Payanywhere/North account and provide the `PAYANYWHERE_*` credentials.
-   Until then, customers order ahead and **pay at the POS on pickup** (normal for a
-   deli). Wiring lives behind `lib/payment.ts` — a drop-in once credentials exist.
+2. **Online card payments (Payanywhere / North — EPX Embedded Checkout, Fields).**
+   Payanywhere is North's brand; online payments run on North's "Online Payments"
+   product with the card form embedded on our own `/checkout` page. To turn it on:
+   1. Ask Payanywhere/North support to enable **Online Payments** on the account and
+      grant access to the **North Developer portal / Embedded Checkout Designer**.
+   2. In the Embedded Checkout Designer, create a checkout in **Fields** mode and copy
+      the three credentials: **API Key** (private), **Checkout ID**, **Profile ID** —
+      get the **sandbox** set first, then production.
+   3. Send those (sandbox first) plus the account's **Fields Integration Guide** so the
+      exact session endpoint + checkout script URL can be wired and tested in sandbox.
+   4. Set `NORTH_API_KEY`, `NORTH_CHECKOUT_ID`, `NORTH_PROFILE_ID`, `NORTH_ENV` in Vercel.
+
+   Until then, customers order ahead and **pay at the POS on pickup/delivery**. Wiring
+   lives behind `lib/payment.ts` (see the `TODO(fields-guide)` markers).
 
 3. **Vercel + domain.** Connect this repo to Vercel and point `thebrothersdeli.com`
    at it when ready to cut over from Wix.

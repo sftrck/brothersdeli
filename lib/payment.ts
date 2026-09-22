@@ -1,40 +1,83 @@
-// Payment integration seam for Payanywhere (North / NAB).
+// Payment integration for Payanywhere / North — EPX Embedded Checkout (Fields).
 //
-// Payanywhere is primarily an in-person POS. Its online path is a HOSTED
-// PAYMENT PAGE / iFrame (the North "Gateway Invoicing" API), which returns a
-// tokenized transaction to the site — there is no full native cart/checkout API.
+// Payanywhere is North's brand; online card payments run on North's "Online
+// Payments" product. We use EPX Embedded Checkout in "Fields" mode so the card
+// form is embedded on our own /checkout page (the customer never leaves the
+// site) while North iframes the actual card inputs, keeping raw card data off
+// our servers (low PCI scope).
 //
-// This module isolates that handoff so the rest of the app never touches
-// payment details. Until the owner provides the North gateway credentials,
-// `mode` is "pay_at_pickup": the customer places the order online and pays at
-// the skyway POS on pickup. This keeps the ordering funnel fully working today.
+// Flow (per North's Embedded Checkout — Fields Integration Guide):
+//   1. Server creates a short-lived checkout SESSION for the order amount
+//      (this file: createCheckoutSession), authenticating with the private API
+//      Key + Checkout ID + Profile ID.
+//   2. Browser loads North's checkout script, mounts the Fields into our
+//      /checkout page, and submits the card to North against that session.
+//   3. Server confirms approval via the session status endpoint
+//      (getSessionStatus) before we treat the order as paid.
 //
-// TO ENABLE ONLINE PREPAYMENT (owner-provided, in Vercel env):
-//   PAYANYWHERE_GATEWAY_URL   – North hosted-payment / invoicing endpoint
-//   PAYANYWHERE_API_KEY       – gateway API key
-//   PAYANYWHERE_MERCHANT_ID   – merchant / MID
-// Then implement `createHostedPayment()` below against the account's API docs
-// (the exact call shape depends on what the merchant account has enabled) and
-// return the hosted checkout URL to redirect the customer to.
+// OWNER-PROVIDED (set in Vercel env; from the North Embedded Checkout Designer):
+//   NORTH_API_KEY      – private API Key (server-side only, never exposed)
+//   NORTH_CHECKOUT_ID  – Checkout ID
+//   NORTH_PROFILE_ID   – Profile ID (used by the browser script)
+//   NORTH_ENV          – "sandbox" | "production"
+//
+// STATUS: credential names + flow are final. The exact session endpoint URL,
+// script URL, and Fields mount API are account-specific and come from the
+// merchant's Fields Integration Guide — the two `TODO(fields-guide)` spots
+// below get filled in (and tested in sandbox) once that guide + sandbox
+// credentials are available.
 
-export type PaymentMode = "pay_at_pickup" | "hosted";
-
-export function paymentMode(): PaymentMode {
-  return process.env.PAYANYWHERE_API_KEY ? "hosted" : "pay_at_pickup";
+export function paymentConfigured(): boolean {
+  return Boolean(
+    process.env.NORTH_API_KEY &&
+      process.env.NORTH_CHECKOUT_ID &&
+      process.env.NORTH_PROFILE_ID
+  );
 }
 
-export type HostedPaymentRequest = {
+// Kept for the existing /api/pay gate. "hosted" = North is configured.
+export type PaymentMode = "pay_at_pickup" | "hosted";
+export function paymentMode(): PaymentMode {
+  return paymentConfigured() ? "hosted" : "pay_at_pickup";
+}
+
+function apiBase(): string {
+  // North sandbox vs production base URL. Confirm exact hosts from the
+  // Embedded Checkout Fields Integration Guide for this account.
+  return process.env.NORTH_ENV === "production"
+    ? "https://api.north.com" // TODO(fields-guide): confirm production base
+    : "https://api.sandbox.north.com"; // TODO(fields-guide): confirm sandbox base
+}
+
+export type CheckoutSession = {
+  sessionId: string;
+  profileId: string;
+  scriptUrl: string;
+  env: string;
+};
+
+// Creates a short-lived Embedded Checkout session the browser will attach the
+// Fields to. Returns the ids the client needs to mount and submit the form.
+export async function createCheckoutSession(_req: {
   orderId: string;
   amount: number; // USD
   description: string;
-};
-
-// Placeholder for the hosted-payment handoff. Wire against the North gateway
-// once credentials are in place; today this path is unused (mode is pickup).
-export async function createHostedPayment(
-  _req: HostedPaymentRequest
-): Promise<{ checkoutUrl: string }> {
+}): Promise<CheckoutSession> {
+  // TODO(fields-guide): POST to North's create-session endpoint with the
+  // private API Key + Checkout ID + amount, and return { sessionId } from the
+  // response, plus the account's checkout script URL. Endpoint/auth/response
+  // shape are in the Fields Integration Guide; wire + test in sandbox first.
+  void apiBase();
   throw new Error(
-    "Payanywhere hosted payment not yet configured. Set PAYANYWHERE_* env vars and implement createHostedPayment()."
+    "North Embedded Checkout not yet wired — needs the account's Fields Integration Guide + sandbox credentials."
   );
+}
+
+// Confirms a session was approved before we mark the order paid.
+export async function getSessionStatus(
+  _sessionId: string
+): Promise<{ approved: boolean; authCode?: string }> {
+  // TODO(fields-guide): GET the session status endpoint and map North's
+  // approval fields to { approved }.
+  throw new Error("North session status not yet wired.");
 }
