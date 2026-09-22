@@ -74,6 +74,9 @@ export async function createCheckoutSession(_req: {
 }
 
 // Confirms a session was approved before we mark the order paid.
+// On approval, the caller should send a "payment collected" email to the deli
+// (via lib/email sendDeliEmail) — the itemized order email already went out when
+// the order was placed, so this is the second, "money received" notification.
 export async function getSessionStatus(
   _sessionId: string
 ): Promise<{ approved: boolean; authCode?: string }> {
