@@ -9,6 +9,9 @@ export type MenuItem = {
   desc?: string;
   price?: number;
   variants?: MenuVariant[];
+  // Sub-section heading shown above this item within its category (e.g. the
+  // meat groups inside Sandwiches). Set on the first item of each group.
+  group?: string;
 };
 export type MenuCategory = {
   id: string;
@@ -45,6 +48,7 @@ export const MENU: MenuCategory[] = [
       // Turkey
       {
         id: "turkey-sandwich",
+        group: "Turkey",
         name: "Turkey Sandwich",
         desc: "Fresh roasted turkey breast, lettuce, tomatoes on choice of bread.",
         variants: [
@@ -63,6 +67,7 @@ export const MENU: MenuCategory[] = [
       // Corned Beef
       {
         id: "louies-corned-beef",
+        group: "Corned Beef",
         name: "Louies Corned Beef Sandwich",
         desc: "House made corned beef — cured for 10 days — on crusty Jewish rye.",
         variants: [
@@ -78,6 +83,7 @@ export const MENU: MenuCategory[] = [
       // Pastrami
       {
         id: "sid-hartmans-favorite",
+        group: "Pastrami",
         name: "Sid Hartman's Favorite",
         desc: "Hot tender pastrami on double baked Jewish rye.",
         variants: [
@@ -90,14 +96,14 @@ export const MENU: MenuCategory[] = [
       { id: "pastrami-reuben", name: "Pastrami Reuben", desc: "Pastrami, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5 },
       { id: "the-hots-pepe", name: "The Hots Pepe", desc: "Pastrami, pepper cheese, onion and hot sauce on grilled rye or pumpernickel.", price: 14.5 },
       // Chicken
-      { id: "jimbos-buffalo-chicken", name: "Jimbo's Buffalo Chicken", desc: "Chicken breast, buffalo sauce, lettuce, tomatoes and blue cheese on ciabatta.", price: 14.0 },
+      { id: "jimbos-buffalo-chicken", group: "Chicken", name: "Jimbo's Buffalo Chicken", desc: "Chicken breast, buffalo sauce, lettuce, tomatoes and blue cheese on ciabatta.", price: 14.0 },
       { id: "spicy-chicken", name: "Spicy Chicken", desc: "Grilled chicken, tomato, red onion, creamy salsa and pepper cheese on ciabatta.", price: 14.0 },
       { id: "chunky-chicken-salad", name: "Daper John's Chunky Chicken Salad", desc: "Tender chicken, mayo, celery, red peppers, seasoning with lettuce and tomato.", price: 12.5 },
       { id: "smothered-brothers-chicken", name: "Smothered Brothers Chicken", desc: "Grilled chicken breast, smothered Brothers sauce and cheese on a roll.", price: 12.99 },
       { id: "chicken-blt", name: "Chicken BLT", desc: "Grilled chicken, cheddar, bacon, lettuce and tomato on ciabatta.", price: 14.0 },
       { id: "pesto-chicken", name: "Pesto Chicken", desc: "Roasted chicken breast, tomatoes and pesto mayo on ciabatta.", price: 14.0 },
       // Beef / Brisket
-      { id: "big-als-warm-roast-beef", name: "Big Al's Warm Roast Beef", desc: "Garlic roasted tri tip on sourdough, lettuce, tomato, red onion and horseradish sauce.", price: 13.99 },
+      { id: "big-als-warm-roast-beef", group: "Beef & Brisket", name: "Big Al's Warm Roast Beef", desc: "Garlic roasted tri tip on sourdough, lettuce, tomato, red onion and horseradish sauce.", price: 13.99 },
       {
         id: "martins-brisket",
         name: "Martin's Brisket Sandwich #1",
@@ -113,27 +119,26 @@ export const MENU: MenuCategory[] = [
       { id: "garlic-roasted-steak", name: "Garlic Roasted Steak Sandwich", desc: "Steak, red onions, apple smoked bacon and cheddar on garlic toasted ciabatta.", price: 14.5 },
       { id: "bulgogi-works", name: "BUL-GO-GI Works", desc: "Steak marinated in 8 spices, grilled, on a French roll with provolone, peppers and red onions.", price: 14.0 },
       // Pork
-      { id: "smoked-ham-sandwich", name: "Smoked Ham Sandwich", desc: "Choice of bread, lettuce and tomato.", price: 11.5 },
+      { id: "smoked-ham-sandwich", group: "Pork", name: "Smoked Ham Sandwich", desc: "Choice of bread, lettuce and tomato.", price: 11.5 },
       { id: "ellies-hot-cuban", name: "Ellie's Hot Cuban", desc: "Spicy sausage, smoked ham, pickles, onions, provolone and spicy mustard on ciabatta.", price: 13.99 },
       { id: "the-yessak", name: "The Yessak", desc: "Smoked ham, roasted turkey, sweet hot mustard, cheddar, red onions, tomatoes on sweet grain or challah.", price: 13.99 },
       { id: "real-good-blt", name: "Real Good BLT", desc: "Apple smoked bacon, tomatoes, lettuce and mayo on challah or sweet grain toast.", price: 11.5 },
       { id: "hollywood-joes", name: "Hollywood Joes", desc: "Smoked ham, melted havarti on grilled challah with sweet hot mustard.", price: 13.99 },
       { id: "grownup-grilled-cheese-bacon", name: "Grown Up Grilled Cheese #2", desc: "Grilled cheese with bacon and tomatoes.", price: 12.99 },
       // Fish
-      { id: "charlies-tuna-salad", name: "Charlie's Tuna Salad", desc: "White albacore tuna, red peppers, celery, mayo and lemon, with lettuce and tomato.", price: 12.5 },
+      { id: "charlies-tuna-salad", group: "Fish", name: "Charlie's Tuna Salad", desc: "White albacore tuna, red peppers, celery, mayo and lemon, with lettuce and tomato.", price: 12.5 },
       { id: "grilled-salmon-sandwich", name: "Grilled Salmon", desc: "6oz salmon with seafood rub, toasted egg bun, baby spinach, tomatoes and cucumbers.", price: 14.99 },
       { id: "rd-tuna-melt", name: "R and D's Tuna Melt", desc: "White tuna on grilled challah with cheddar and tomatoes.", price: 12.99 },
       { id: "aidens-tuna-avocado-melt", name: "Aiden's Tuna Avocado Melt", desc: "White tuna, melted pepper cheese, avocado and tomato on grilled challah or sweet grain.", price: 12.99 },
       // Veggie
-      { id: "brother-b-veggie", name: "Brother B-Veggie", desc: "Tomatoes, iceberg, avocado, cucumbers, red peppers, havarti on sweet grain with honey cup dressing.", price: 11.5 },
+      { id: "brother-b-veggie", group: "Veggie", name: "Brother B-Veggie", desc: "Tomatoes, iceberg, avocado, cucumbers, red peppers, havarti on sweet grain with honey cup dressing.", price: 11.5 },
       { id: "grownup-grilled-cheese-tomatoes", name: "Grown Up Grilled Cheese with Tomatoes", desc: "On challah or sweet grain.", price: 8.99 },
       { id: "cousin-steves-tomato-havarti", name: "Cousin Steve's Tomato Havarti", desc: "Roasted red peppers, tomatoes, havarti, spinach, pesto and vinaigrette on sweet grain.", price: 11.5 },
       { id: "grownup-grilled-cheese", name: "Grown Up Grilled Cheese", desc: "On challah or sweet grain.", price: 7.49 },
       { id: "egg-salad", name: "Egg Salad", desc: "House made with red peppers, green onions and mayo, with lettuce and tomato.", price: 11.5 },
-      { id: "smashed-falafel-burger", name: "Smashed Falafel Burger", desc: "Falafel, Israeli salad, feta on ciabatta.", price: 10.49 },
       { id: "grilled-cheese-tomato-soup", name: "Grilled Cheese & Cup of Tomato Soup", desc: "Plain grilled cheese on white with a cup of homemade tomato soup.", price: 14.5 },
       // Burgers
-      { id: "burger-plain", name: "Plain Burger", desc: "Served with fresh cut fries.", price: 9.99 },
+      { id: "burger-plain", group: "Burgers", name: "Plain Burger", desc: "Served with fresh cut fries.", price: 9.99 },
       { id: "bbq-bacon-cheeseburger", name: "BBQ Bacon Cheeseburger", desc: "Served with fresh cut fries.", price: 14.0 },
       { id: "blue-cheese-mushroom-burger", name: "Blue Cheese Mushroom Burger", desc: "Served with fresh cut fries.", price: 14.0 },
       { id: "cheeseburger", name: "Cheeseburger", desc: "Served with fresh cut fries.", price: 14.0 },
@@ -170,7 +175,6 @@ export const MENU: MenuCategory[] = [
     note: "Healthy choices; these do not include a side. Add chips, potato salad or coleslaw $2 each.",
     items: [
       { id: "light-reuben", name: "Light Reuben", desc: "Sliced turkey, low-fat Swiss, low-sodium kraut, light Russian on dry grilled pumpernickel.", price: 10.5 },
-      { id: "chipotle-turkey-burger", name: "Chipotle Turkey Burger", desc: "Turkey burger, chipotle spices, low-fat BBQ salsa, whole-wheat bun.", price: 7.99 },
       { id: "southwest-turkey-wrap", name: "Southwest Turkey Wrap", desc: "Smoked turkey, lettuce, cheese, red onions, cilantro salsa, whole-wheat wrap.", price: 10.5 },
       { id: "fit-turkey-club", name: "Fit Turkey Club", desc: "Roasted turkey, turkey bacon, lettuce, tomato, light mayo, whole-wheat toast.", price: 10.5 },
       { id: "roasted-spicy-steak-wrap", name: "Roasted Spicy Steak Wrap", desc: "Choice sirloin in light teriyaki, red peppers, onions, shredded lettuce.", price: 10.5 },

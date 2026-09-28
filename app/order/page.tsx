@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -236,7 +236,11 @@ export default function OrderPage() {
                 {cat.note && <p className="note">{cat.note}</p>}
                 <div className="menu-list">
                   {cat.items.map((item) => (
-                    <div className="mrow" key={item.id}>
+                    <Fragment key={item.id}>
+                      {item.group && (
+                        <h3 className="menu-subhead">{item.group}</h3>
+                      )}
+                    <div className="mrow">
                       <div className="info">
                         <h3>{item.name}</h3>
                         {item.desc && <p>{item.desc}</p>}
@@ -274,6 +278,7 @@ export default function OrderPage() {
                         </button>
                       </div>
                     </div>
+                    </Fragment>
                   ))}
                 </div>
               </section>

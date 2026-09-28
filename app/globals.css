@@ -334,3 +334,7 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 
 /* Closed state for the open/closed indicator dot */
 .hours .dot.closed{background:var(--ink-soft);box-shadow:0 0 0 4px rgba(91,82,74,.18)}
+
+/* Sub-section heading within a menu category (meat groups in Sandwiches) */
+.menu-subhead{font-family:var(--display);text-transform:uppercase;font-size:1.15rem;color:var(--burgundy);letter-spacing:.03em;margin-top:20px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.menu-subhead:first-child{margin-top:0}
