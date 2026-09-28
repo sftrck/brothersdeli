@@ -42,10 +42,8 @@ export const CATERING: CateringGroup[] = [
       { id: "sloppy-joe", name: "Homemade Sloppy Joe", desc: "Coleslaw, chips and pickles", perPerson: 15.99 },
       { id: "rosemary-chicken", name: "Rosemary Chicken", desc: "Red potatoes, green beans, rolls and butter", perPerson: 15.99 },
       { id: "hot-turkey-meal", name: "Hot Turkey Meal", desc: "Garlic mashed potatoes, gravy, rolls, salad", perPerson: 15.99 },
-      { id: "homemade-meatloaf", name: "Homemade Meatloaf", desc: "Salad, garlic mashed potatoes, gravy, rolls", perPerson: 15.99 },
       { id: "bbq-beef", name: "BBQ Beef", desc: "Coleslaw, chips, pickles", perPerson: 15.99 },
       { id: "bbq-pork", name: "BBQ Pork", desc: "Coleslaw, chips, pickles", perPerson: 15.99 },
-      { id: "taco-bar", name: "Taco Bar", desc: "Chicken, ground beef, all the fixings, buffet style", perPerson: 15.99 },
     ],
   },
   {
