@@ -338,3 +338,39 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 /* Sub-section heading within a menu category (meat groups in Sandwiches) */
 .menu-subhead{font-family:var(--display);text-transform:uppercase;font-size:1.15rem;color:var(--burgundy);letter-spacing:.03em;margin-top:20px;padding-bottom:6px;border-bottom:2px solid var(--line)}
 .menu-subhead:first-child{margin-top:0}
+
+/* ============ Order cart: mobile drawer ============ */
+.cart-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cart-close{display:none}
+.cart-bar{display:none}
+.cart-overlay{display:none}
+
+@media (max-width:900px){
+  /* Fixed bottom bar — always reachable without scrolling the menu */
+  .cart-bar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;
+    align-items:center;justify-content:space-between;gap:14px;
+    background:var(--green-deep);color:var(--paper);border:none;cursor:pointer;
+    padding:13px 20px;text-align:left;font-family:var(--body);
+    box-shadow:0 -10px 30px -14px rgba(0,0,0,.45)
+  }
+  .cart-bar .cb-info{font-weight:800;font-size:1rem}
+  .cart-bar .cb-info small{display:block;font-weight:600;font-size:.76rem;color:rgba(247,242,231,.8)}
+  .cart-bar .cb-cta{background:var(--mustard);color:#3a2708;font-weight:800;font-size:.92rem;padding:11px 18px;border-radius:999px;white-space:nowrap}
+
+  .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:80;opacity:0;pointer-events:none;transition:opacity .22s}
+  .cart-overlay.open{opacity:1;pointer-events:auto}
+
+  /* The cart becomes a bottom-sheet drawer */
+  .cart{
+    position:fixed;left:0;right:0;bottom:0;z-index:90;margin:0;
+    max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;
+    transform:translateY(100%);transition:transform .26s ease;
+    box-shadow:0 -20px 50px -20px rgba(0,0,0,.5)
+  }
+  .cart.open{transform:translateY(0)}
+  .cart-close{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:1rem;cursor:pointer;flex-shrink:0}
+
+  /* Room so the bottom bar never hides the last menu row */
+  .order-layout{padding-bottom:80px}
+}

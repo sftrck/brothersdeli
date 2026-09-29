@@ -40,6 +40,7 @@ export default function OrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const router = useRouter();
 
   // Restore a saved cart so items survive leaving the site or changing pages.
@@ -285,8 +286,18 @@ export default function OrderPage() {
             ))}
           </div>
 
-          <aside className="cart">
-            <h2>Your Order</h2>
+          <aside className={`cart${cartOpen ? " open" : ""}`}>
+            <div className="cart-head">
+              <h2>Your Order</h2>
+              <button
+                type="button"
+                className="cart-close"
+                aria-label="Close order"
+                onClick={() => setCartOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
             <div className="fulfill" role="group" aria-label="Pickup or delivery">
               <button
                 type="button"
@@ -428,6 +439,26 @@ export default function OrderPage() {
           </aside>
         </div>
       </div>
+
+      {/* Mobile: always-reachable order bar that opens the cart drawer */}
+      {cart.length > 0 && (
+        <button
+          className="cart-bar"
+          onClick={() => setCartOpen(true)}
+          aria-label="View your order"
+        >
+          <span className="cb-info">
+            {cart.reduce((s, l) => s + l.qty, 0)}{" "}
+            {cart.reduce((s, l) => s + l.qty, 0) === 1 ? "item" : "items"}
+            <small>Tap to review &amp; check out</small>
+          </span>
+          <span className="cb-cta">View order · {money(total)}</span>
+        </button>
+      )}
+      <div
+        className={`cart-overlay${cartOpen ? " open" : ""}`}
+        onClick={() => setCartOpen(false)}
+      />
 
       <SiteFooter />
     </>
