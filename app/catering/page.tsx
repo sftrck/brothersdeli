@@ -13,6 +13,14 @@ function money(n: number) {
 export default function CateringPage() {
   const [headcount, setHeadcount] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [choices, setChoices] = useState<Record<string, string>>({});
+  const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
+  const [address, setAddress] = useState("");
+  const [veg, setVeg] = useState(false);
+  const [vegCount, setVegCount] = useState("");
+  const [gf, setGf] = useState(false);
+  const [gfCount, setGfCount] = useState("");
+  const [utensils, setUtensils] = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -31,9 +39,17 @@ export default function CateringPage() {
     try {
       const raw = localStorage.getItem("bd_catering");
       if (raw) {
-        const saved = JSON.parse(raw);
-        if (typeof saved.headcount === "string") setHeadcount(saved.headcount);
-        if (Array.isArray(saved.selected)) setSelected(new Set(saved.selected));
+        const s = JSON.parse(raw);
+        if (typeof s.headcount === "string") setHeadcount(s.headcount);
+        if (Array.isArray(s.selected)) setSelected(new Set(s.selected));
+        if (s.choices && typeof s.choices === "object") setChoices(s.choices);
+        if (s.fulfillment === "delivery") setFulfillment("delivery");
+        if (typeof s.address === "string") setAddress(s.address);
+        if (s.veg) setVeg(true);
+        if (typeof s.vegCount === "string") setVegCount(s.vegCount);
+        if (s.gf) setGf(true);
+        if (typeof s.gfCount === "string") setGfCount(s.gfCount);
+        if (s.utensils) setUtensils(true);
       }
     } catch {
       /* ignore */
@@ -46,14 +62,26 @@ export default function CateringPage() {
     try {
       localStorage.setItem(
         "bd_catering",
-        JSON.stringify({ headcount, selected: Array.from(selected) })
+        JSON.stringify({
+          headcount,
+          selected: Array.from(selected),
+          choices,
+          fulfillment,
+          address,
+          veg,
+          vegCount,
+          gf,
+          gfCount,
+          utensils,
+        })
       );
     } catch {
       /* ignore */
     }
-  }, [headcount, selected, loaded]);
+  }, [headcount, selected, choices, fulfillment, address, veg, vegCount, gf, gfCount, utensils, loaded]);
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
+  const gfNum = gf ? Math.max(0, Math.floor(Number(gfCount) || 0)) : 0;
 
   const selectedItems = useMemo(
     () =>
@@ -64,7 +92,9 @@ export default function CateringPage() {
   );
 
   const perPersonSum = selectedItems.reduce((s, it) => s + it.perPerson, 0);
-  const total = heads * perPersonSum;
+  const foodTotal = heads * perPersonSum;
+  const gfUpcharge = gfNum * 2;
+  const estimateTotal = foodTotal + gfUpcharge;
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -75,6 +105,10 @@ export default function CateringPage() {
     });
   }
 
+  function choiceFor(it: NonNullable<ReturnType<typeof findCateringItem>>) {
+    return it.choose ? choices[it.id] || it.choose.options[0] : undefined;
+  }
+
   async function submit() {
     setError("");
     if (heads < CATERING_MIN_HEADCOUNT) {
@@ -82,7 +116,11 @@ export default function CateringPage() {
       return;
     }
     if (selectedItems.length === 0) {
-      setError("Pick at least one item for your estimate.");
+      setError("Pick at least one item.");
+      return;
+    }
+    if (fulfillment === "delivery" && !address.trim()) {
+      setError("Please add a delivery address.");
       return;
     }
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
@@ -101,7 +139,12 @@ export default function CateringPage() {
         body: JSON.stringify({
           ...form,
           headcount: heads,
-          items: selectedItems.map((it) => it.id),
+          items: selectedItems.map((it) => ({ id: it.id, choice: choiceFor(it) })),
+          fulfillment,
+          address,
+          vegCount: veg ? Math.max(0, Math.floor(Number(vegCount) || 0)) : 0,
+          gfCount: gfNum,
+          utensils,
         }),
       });
       const data = await res.json();
@@ -109,17 +152,13 @@ export default function CateringPage() {
         setError(data.error || "Something went wrong. Please email us directly.");
         return;
       }
-      // Hand the order to checkout (Payanywhere).
+      // Server returns authoritative lines + total (incl. delivery + GF).
       const pending = {
         type: "Catering",
         orderId: data.inquiryId,
         headcount: heads,
         total: data.total,
-        lines: selectedItems.map((it) => ({
-          name: it.name,
-          detail: `${money(it.perPerson)}/pp × ${heads}`,
-          amount: it.perPerson * heads,
-        })),
+        lines: data.lines,
         contact: { name: form.name, email: form.email, phone: form.phone },
       };
       try {
@@ -184,35 +223,51 @@ export default function CateringPage() {
                   {g.items.map((it) => {
                     const sel = selected.has(it.id);
                     return (
-                      <label
-                        className={`crow${sel ? " sel" : ""}`}
-                        key={it.id}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={sel}
-                          onChange={() => toggle(it.id)}
-                        />
-                        <div className="ci">
-                          <div className="cn">{it.name}</div>
-                          {it.desc && <div className="cd">{it.desc}</div>}
-                        </div>
-                        <div className="cp">
-                          {heads > 0 ? (
-                            <>
-                              {money(it.perPerson * heads)}
-                              <small>
-                                {money(it.perPerson)}/pp × {heads}
-                              </small>
-                            </>
-                          ) : (
-                            <>
-                              {money(it.perPerson)}
-                              <small>per person</small>
-                            </>
-                          )}
-                        </div>
-                      </label>
+                      <div key={it.id}>
+                        <label className={`crow${sel ? " sel" : ""}`}>
+                          <input
+                            type="checkbox"
+                            checked={sel}
+                            onChange={() => toggle(it.id)}
+                          />
+                          <div className="ci">
+                            <div className="cn">{it.name}</div>
+                            {it.desc && <div className="cd">{it.desc}</div>}
+                          </div>
+                          <div className="cp">
+                            {heads > 0 ? (
+                              <>
+                                {money(it.perPerson * heads)}
+                                <small>
+                                  {money(it.perPerson)}/pp × {heads}
+                                </small>
+                              </>
+                            ) : (
+                              <>
+                                {money(it.perPerson)}
+                                <small>per person</small>
+                              </>
+                            )}
+                          </div>
+                        </label>
+                        {sel && it.choose && (
+                          <div className="crow-choice">
+                            <label>{it.choose.label}</label>
+                            <select
+                              value={choices[it.id] || it.choose.options[0]}
+                              onChange={(e) =>
+                                setChoices((c) => ({ ...c, [it.id]: e.target.value }))
+                              }
+                            >
+                              {it.choose.options.map((o) => (
+                                <option key={o} value={o}>
+                                  {o}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -229,99 +284,165 @@ export default function CateringPage() {
             </div>
 
             <div className="est-summary">
-              <>
-                  <h3>Your Order</h3>
+              <h3>Your Order</h3>
 
-                  {selectedItems.length === 0 ? (
-                    <p className="est-empty">
-                      Select items and enter a headcount to see your estimate.
-                    </p>
-                  ) : (
-                    <>
-                      {selectedItems.map((it) => (
-                        <div className="est-line" key={it.id}>
-                          <span>
-                            {it.name}
-                            <span className="pp">
-                              {" "}
-                              · {money(it.perPerson)}/pp
-                            </span>
-                          </span>
-                          <span>
-                            {heads > 0 ? money(it.perPerson * heads) : "—"}
-                          </span>
-                        </div>
-                      ))}
-                      <div className="est-total">
-                        <span>{heads > 0 ? `${heads} people` : "Total"}</span>
-                        <span>{money(total)}</span>
-                      </div>
-                      <div className="est-note">
-                        {money(perPersonSum)} per person × {heads || 0}. Tax and
-                        any delivery confirmed by the deli at checkout.
-                      </div>
-                    </>
+              {selectedItems.length === 0 ? (
+                <p className="est-empty">
+                  Select items and enter a headcount to see your estimate.
+                </p>
+              ) : (
+                <>
+                  {selectedItems.map((it) => (
+                    <div className="est-line" key={it.id}>
+                      <span>
+                        {it.name}
+                        {choiceFor(it) ? ` — ${choiceFor(it)}` : ""}
+                        <span className="pp"> · {money(it.perPerson)}/pp</span>
+                      </span>
+                      <span>{heads > 0 ? money(it.perPerson * heads) : "—"}</span>
+                    </div>
+                  ))}
+                  {gfUpcharge > 0 && (
+                    <div className="est-line">
+                      <span>
+                        Gluten-free upcharge
+                        <span className="pp"> · $2 × {gfNum}</span>
+                      </span>
+                      <span>{money(gfUpcharge)}</span>
+                    </div>
                   )}
+                  <div className="est-total">
+                    <span>{heads > 0 ? `${heads} people` : "Total"}</span>
+                    <span>{money(estimateTotal)}</span>
+                  </div>
+                  <div className="est-note">
+                    {fulfillment === "delivery"
+                      ? "Delivery fee is calculated by distance at checkout. "
+                      : ""}
+                    Tax not included.
+                  </div>
+                </>
+              )}
 
-                  <div className="field">
-                    <label>Name *</label>
-                    <input
-                      value={form.name}
-                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="field row">
-                    <div>
-                      <label>Email *</label>
-                      <input
-                        value={form.email}
-                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                        inputMode="email"
-                      />
-                    </div>
-                    <div>
-                      <label>Phone *</label>
-                      <input
-                        value={form.phone}
-                        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                        inputMode="tel"
-                      />
-                    </div>
-                  </div>
-                  <div className="field row">
-                    <div>
-                      <label>Company / group</label>
-                      <input
-                        value={form.company}
-                        onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label>Event date</label>
-                      <input
-                        type="date"
-                        value={form.eventDate}
-                        onChange={(e) => setForm((f) => ({ ...f, eventDate: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label>Details</label>
-                    <textarea
-                      value={form.details}
-                      onChange={(e) => setForm((f) => ({ ...f, details: e.target.value }))}
-                      placeholder="Delivery or pickup, dietary needs, timing…"
-                    />
-                  </div>
+              {/* Pickup / Delivery */}
+              <div className="fulfill" style={{ marginTop: 18 }} role="group" aria-label="Pickup or delivery">
+                <button
+                  type="button"
+                  className={fulfillment === "pickup" ? "on" : ""}
+                  onClick={() => setFulfillment("pickup")}
+                >
+                  Pickup
+                </button>
+                <button
+                  type="button"
+                  className={fulfillment === "delivery" ? "on" : ""}
+                  onClick={() => setFulfillment("delivery")}
+                >
+                  Delivery
+                </button>
+              </div>
+              {fulfillment === "delivery" && (
+                <div className="field">
+                  <label>Delivery address *</label>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Street address, suite/floor, company, city…"
+                  />
+                </div>
+              )}
 
-                  {error && <div className="form-err">{error}</div>}
+              {/* Dietary + extras */}
+              <div className="diet">
+                <label className="diet-row">
+                  <input type="checkbox" checked={veg} onChange={(e) => setVeg(e.target.checked)} />
+                  <span>Need vegetarian options?</span>
+                </label>
+                {veg && (
+                  <input
+                    className="diet-count"
+                    value={vegCount}
+                    onChange={(e) => setVegCount(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="How many people?"
+                    inputMode="numeric"
+                  />
+                )}
+                <label className="diet-row">
+                  <input type="checkbox" checked={gf} onChange={(e) => setGf(e.target.checked)} />
+                  <span>Need gluten-free options? (+$2/person)</span>
+                </label>
+                {gf && (
+                  <input
+                    className="diet-count"
+                    value={gfCount}
+                    onChange={(e) => setGfCount(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="How many people?"
+                    inputMode="numeric"
+                  />
+                )}
+                <label className="diet-row">
+                  <input type="checkbox" checked={utensils} onChange={(e) => setUtensils(e.target.checked)} />
+                  <span>Need serving utensils, plates, etc.?</span>
+                </label>
+              </div>
 
-                  <button className="submit-btn" onClick={submit} disabled={submitting}>
-                    {submitting
-                      ? "Starting checkout…"
-                      : "Complete Catering Purchase"}
-                  </button>
-              </>
+              {/* Contact */}
+              <div className="field">
+                <label>Name *</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                />
+              </div>
+              <div className="field row">
+                <div>
+                  <label>Email *</label>
+                  <input
+                    value={form.email}
+                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                    inputMode="email"
+                  />
+                </div>
+                <div>
+                  <label>Phone *</label>
+                  <input
+                    value={form.phone}
+                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                    inputMode="tel"
+                  />
+                </div>
+              </div>
+              <div className="field row">
+                <div>
+                  <label>Company / group</label>
+                  <input
+                    value={form.company}
+                    onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label>Event date</label>
+                  <input
+                    type="date"
+                    value={form.eventDate}
+                    onChange={(e) => setForm((f) => ({ ...f, eventDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="field">
+                <label>Details</label>
+                <textarea
+                  value={form.details}
+                  onChange={(e) => setForm((f) => ({ ...f, details: e.target.value }))}
+                  placeholder="Timing, allergies, special requests…"
+                />
+              </div>
+
+              {error && <div className="form-err">{error}</div>}
+
+              <button className="submit-btn" onClick={submit} disabled={submitting}>
+                {submitting ? "Starting checkout…" : "Complete Catering Purchase"}
+              </button>
             </div>
           </div>
         </div>

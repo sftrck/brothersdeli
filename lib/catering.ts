@@ -7,12 +7,30 @@ export type CateringItem = {
   name: string;
   desc?: string;
   perPerson: number;
+  // Some trays require a choice (which salad, which side).
+  choose?: { label: string; options: string[] };
 };
 export type CateringGroup = {
   id: string;
   name: string;
   items: CateringItem[];
 };
+
+// Salads a tray can feature, and the sides a sandwich tray can include.
+export const CATERING_SALADS = [
+  "Caesar",
+  "Greek",
+  "Cobb",
+  "Chopped",
+  "Thai Crunch",
+  "Trudy's Cranberry Apple",
+  "House",
+  "Fruited Spinach",
+  "Southwest Buffalo",
+  "Chinese Chicken",
+  "Mediterranean Chicken Quinoa",
+];
+export const CATERING_SIDES = ["Potato Salad", "Coleslaw", "Chips"];
 
 export const CATERING: CateringGroup[] = [
   {
@@ -59,12 +77,12 @@ export const CATERING: CateringGroup[] = [
     id: "deli-bakery-trays",
     name: "Deli & Bakery Trays",
     items: [
-      { id: "salad-tray", name: "Salad Tray", desc: "Any of our salads with popovers", perPerson: 14.99 },
+      { id: "salad-tray", name: "Salad Tray", desc: "Any of our salads with popovers", perPerson: 14.99, choose: { label: "Choose a salad", options: CATERING_SALADS } },
       { id: "meat-cheese-tray", name: "Meat & Cheese Tray", desc: "Corned beef, roast beef, ham, turkey, cheeses, dills, bread", perPerson: 14.99 },
       { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "Variety of sandwiches with chips, pickles and mini desserts included", perPerson: 17.99 },
-      { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese, dills, potato salad or slaw", perPerson: 14.99 },
-      { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Variety of wrap sandwiches with sides", perPerson: 14.99 },
-      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus any one salad", perPerson: 14.99 },
+      { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese and dills", perPerson: 14.99, choose: { label: "Choose a side", options: CATERING_SIDES } },
+      { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Variety of wrap sandwiches", perPerson: 14.99, choose: { label: "Choose a side", options: CATERING_SIDES } },
+      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus any one salad", perPerson: 14.99, choose: { label: "Choose a salad", options: CATERING_SALADS } },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
       { id: "cookies-tray", name: "Cookies", perPerson: 4.45 },
