@@ -81,6 +81,18 @@ const proteinOption: MenuOption = {
     { label: "Add salmon", price: 4.5 },
   ],
 };
+const soupSide: MenuOption = {
+  id: "side",
+  label: "Choose a side",
+  required: true,
+  choices: [{ label: "Popover" }, { label: "Cornbread" }],
+};
+const dinaMeat: MenuOption = {
+  id: "meat",
+  label: "Choose your meat",
+  required: true,
+  choices: [{ label: "Corned Beef" }, { label: "Pastrami" }],
+};
 // Common bundles
 const breadAndCheese: MenuOption[] = [breadOption(), cheeseOption];
 
@@ -141,7 +153,7 @@ export const MENU: MenuCategory[] = [
         ],
         options: [cheeseOption],
       },
-      { id: "dinas-delight", name: "Dina's Delight", desc: "Hot corned beef or pastrami, homemade cole slaw and Russian dressing on double baked rye.", price: 14.5 },
+      { id: "dinas-delight", name: "Dina's Delight", desc: "Hot corned beef or pastrami, homemade cole slaw and Russian dressing on double baked rye.", price: 14.5, options: [dinaMeat] },
       { id: "brothers-reuben", name: "Brothers Reuben", desc: "Corned beef, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5, options: [breadOption([{ label: "Rye" }, { label: "Pumpernickel" }]), cheeseOption] },
       { id: "danny-rose", name: "Danny Rose", desc: "Our own corned beef and pastrami on a double baked rye.", price: 14.5 },
       { id: "cousin-tony", name: "Cousin Tony", desc: "Hot corned beef and pastrami, tomatoes, swiss, red onions, thousand island on double baked rye.", price: 14.5 },
@@ -243,11 +255,11 @@ export const MENU: MenuCategory[] = [
     name: "Soups",
     note: "All soups are bowls and come with a popover and honey butter. Substitute cornbread on request.",
     items: [
-      { id: "chicken-noodle", name: "Chicken Noodle", price: 8.0 },
-      { id: "tomato-basil", name: "Tomato Basil", price: 8.0 },
-      { id: "fluffy-matzo-ball", name: "Fluffy Matzo Ball", price: 8.0 },
-      { id: "white-bean-chicken-chili", name: "White Bean Chicken Chili", price: 8.0 },
-      { id: "chicken-wild-rice", name: "Chicken Wild Rice", price: 8.0 },
+      { id: "chicken-noodle", name: "Chicken Noodle", price: 8.0, options: [soupSide] },
+      { id: "tomato-basil", name: "Tomato Basil", price: 8.0, options: [soupSide] },
+      { id: "fluffy-matzo-ball", name: "Fluffy Matzo Ball", price: 8.0, options: [soupSide] },
+      { id: "white-bean-chicken-chili", name: "White Bean Chicken Chili", price: 8.0, options: [soupSide] },
+      { id: "chicken-wild-rice", name: "Chicken Wild Rice", price: 8.0, options: [soupSide] },
     ],
   },
   {

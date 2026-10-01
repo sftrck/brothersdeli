@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
-import { CATERING, CATERING_MIN_HEADCOUNT, findCateringItem } from "@/lib/catering";
+import {
+  CATERING,
+  CATERING_MIN_HEADCOUNT,
+  findCateringItem,
+  type CateringChoice,
+} from "@/lib/catering";
 
 function money(n: number) {
   return `$${n.toFixed(2)}`;
@@ -105,8 +110,14 @@ export default function CateringPage() {
     });
   }
 
-  function choiceFor(it: NonNullable<ReturnType<typeof findCateringItem>>) {
-    return it.choose ? choices[it.id] || it.choose.options[0] : undefined;
+  function choiceVal(itemId: string, c: CateringChoice) {
+    return choices[`${itemId}:${c.id}`] || c.options[0];
+  }
+  function choiceSummary(
+    it: NonNullable<ReturnType<typeof findCateringItem>>
+  ): string {
+    if (!it.chooses) return "";
+    return it.chooses.map((c) => choiceVal(it.id, c)).join(", ");
   }
 
   async function submit() {
@@ -139,7 +150,14 @@ export default function CateringPage() {
         body: JSON.stringify({
           ...form,
           headcount: heads,
-          items: selectedItems.map((it) => ({ id: it.id, choice: choiceFor(it) })),
+          items: selectedItems.map((it) => ({
+            id: it.id,
+            choices: it.chooses
+              ? Object.fromEntries(
+                  it.chooses.map((c) => [c.id, choiceVal(it.id, c)])
+                )
+              : undefined,
+          })),
           fulfillment,
           address,
           vegCount: veg ? Math.max(0, Math.floor(Number(vegCount) || 0)) : 0,
@@ -250,23 +268,27 @@ export default function CateringPage() {
                             )}
                           </div>
                         </label>
-                        {sel && it.choose && (
-                          <div className="crow-choice">
-                            <label>{it.choose.label}</label>
-                            <select
-                              value={choices[it.id] || it.choose.options[0]}
-                              onChange={(e) =>
-                                setChoices((c) => ({ ...c, [it.id]: e.target.value }))
-                              }
-                            >
-                              {it.choose.options.map((o) => (
-                                <option key={o} value={o}>
-                                  {o}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        {sel &&
+                          it.chooses?.map((c) => (
+                            <div className="crow-choice" key={c.id}>
+                              <label>{c.label}</label>
+                              <select
+                                value={choices[`${it.id}:${c.id}`] || c.options[0]}
+                                onChange={(e) =>
+                                  setChoices((prev) => ({
+                                    ...prev,
+                                    [`${it.id}:${c.id}`]: e.target.value,
+                                  }))
+                                }
+                              >
+                                {c.options.map((o) => (
+                                  <option key={o} value={o}>
+                                    {o}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ))}
                       </div>
                     );
                   })}
@@ -296,7 +318,7 @@ export default function CateringPage() {
                     <div className="est-line" key={it.id}>
                       <span>
                         {it.name}
-                        {choiceFor(it) ? ` — ${choiceFor(it)}` : ""}
+                        {choiceSummary(it) ? ` — ${choiceSummary(it)}` : ""}
                         <span className="pp"> · {money(it.perPerson)}/pp</span>
                       </span>
                       <span>{heads > 0 ? money(it.perPerson * heads) : "—"}</span>

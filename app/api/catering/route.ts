@@ -7,7 +7,7 @@ import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
 const MAX_HEADCOUNT = 1000;
 const GF_PER_PERSON = 2;
 
-type ItemIn = { id: string; choice?: string };
+type ItemIn = { id: string; choices?: Record<string, string> };
 type CateringIn = {
   name: string;
   email: string;
@@ -88,9 +88,13 @@ export async function POST(req: NextRequest) {
     if (!it || seen.has(it.id)) continue;
     seen.add(it.id);
     let choice: string | undefined;
-    if (it.choose) {
-      const c = oneLine(raw?.choice, 60);
-      choice = it.choose.options.includes(c) ? c : it.choose.options[0];
+    if (it.chooses) {
+      choice = it.chooses
+        .map((c) => {
+          const picked = oneLine(raw?.choices?.[c.id], 60);
+          return c.options.includes(picked) ? picked : c.options[0];
+        })
+        .join(", ");
     }
     chosen.push({ name: it.name, perPerson: it.perPerson, choice });
   }
