@@ -61,6 +61,7 @@ export const CATERING: CateringGroup[] = [
     items: [
       { id: "salad-tray", name: "Salad Tray", desc: "Any of our salads with popovers", perPerson: 14.99 },
       { id: "meat-cheese-tray", name: "Meat & Cheese Tray", desc: "Corned beef, roast beef, ham, turkey, cheeses, dills, bread", perPerson: 14.99 },
+      { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "Variety of sandwiches with chips, pickles and mini desserts included", perPerson: 17.99 },
       { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese, dills, potato salad or slaw", perPerson: 14.99 },
       { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Variety of wrap sandwiches with sides", perPerson: 14.99 },
       { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus any one salad", perPerson: 14.99 },

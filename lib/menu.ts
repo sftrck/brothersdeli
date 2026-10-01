@@ -99,22 +99,11 @@ export const MENU: MenuCategory[] = [
       { id: "jimbos-buffalo-chicken", group: "Chicken", name: "Jimbo's Buffalo Chicken", desc: "Chicken breast, buffalo sauce, lettuce, tomatoes and blue cheese on ciabatta.", price: 14.0 },
       { id: "spicy-chicken", name: "Spicy Chicken", desc: "Grilled chicken, tomato, red onion, creamy salsa and pepper cheese on ciabatta.", price: 14.0 },
       { id: "chunky-chicken-salad", name: "Daper John's Chunky Chicken Salad", desc: "Tender chicken, mayo, celery, red peppers, seasoning with lettuce and tomato.", price: 12.5 },
-      { id: "smothered-brothers-chicken", name: "Smothered Brothers Chicken", desc: "Grilled chicken breast, smothered Brothers sauce and cheese on a roll.", price: 12.99 },
       { id: "chicken-blt", name: "Chicken BLT", desc: "Grilled chicken, cheddar, bacon, lettuce and tomato on ciabatta.", price: 14.0 },
       { id: "pesto-chicken", name: "Pesto Chicken", desc: "Roasted chicken breast, tomatoes and pesto mayo on ciabatta.", price: 14.0 },
       // Beef / Brisket
       { id: "big-als-warm-roast-beef", group: "Beef & Brisket", name: "Big Al's Warm Roast Beef", desc: "Garlic roasted tri tip on sourdough, lettuce, tomato, red onion and horseradish sauce.", price: 13.99 },
-      {
-        id: "martins-brisket",
-        name: "Martin's Brisket Sandwich #1",
-        desc: "Brisket marinated 24 hours, slow roasted in dry and wet rub, on double baked bread.",
-        variants: [
-          { label: "Whole", price: 9.49 },
-          { label: "New York", price: 15.49 },
-        ],
-      },
       { id: "francos-italian-beef", name: "Francos Italian Beef", desc: "Garlic roasted steak, red peppers, banana peppers, horseradish, provolone on ciabatta with Italian dip.", price: 13.99 },
-      { id: "brother-sam", name: "Brother Sam", desc: "Potted brisket, cheddar, hot peppers and sweet mustard on sourdough or rye.", price: 13.99 },
       { id: "davids-french-dip", name: "David's French Dip", desc: "Garlic roasted tri tip on a ciabatta roll with au jus. Add cheese $1.25.", price: 13.0 },
       { id: "garlic-roasted-steak", name: "Garlic Roasted Steak Sandwich", desc: "Steak, red onions, apple smoked bacon and cheddar on garlic toasted ciabatta.", price: 14.5 },
       { id: "bulgogi-works", name: "BUL-GO-GI Works", desc: "Steak marinated in 8 spices, grilled, on a French roll with provolone, peppers and red onions.", price: 14.0 },
@@ -140,9 +129,7 @@ export const MENU: MenuCategory[] = [
       // Burgers
       { id: "burger-plain", group: "Burgers", name: "Plain Burger", desc: "Served with fresh cut fries.", price: 9.99 },
       { id: "bbq-bacon-cheeseburger", name: "BBQ Bacon Cheeseburger", desc: "Served with fresh cut fries.", price: 14.0 },
-      { id: "blue-cheese-mushroom-burger", name: "Blue Cheese Mushroom Burger", desc: "Served with fresh cut fries.", price: 14.0 },
       { id: "cheeseburger", name: "Cheeseburger", desc: "Served with fresh cut fries.", price: 14.0 },
-      { id: "smothered-burger", name: "Smothered Burger", desc: "Mushrooms, onions, teriyaki, provolone. With fresh cut fries.", price: 12.99 },
       { id: "all-american-cheese", name: "All American with Cheese", desc: "6oz ground chuck, lettuce, tomato, onion, special sauce. With fries.", price: 14.0 },
       { id: "the-brothers-burger", name: "The Brothers Burger", desc: "6oz patty, melted cheese, bacon, secret sauce. With fries.", price: 14.0 },
       { id: "patty-melt", name: "Patty Melt", desc: "Grilled pumpernickel, tomatoes, onions, cheese, special sauce. With fries.", price: 14.0 },
@@ -219,9 +206,7 @@ export const MENU: MenuCategory[] = [
       { id: "heath-cookie", name: "Heath Cookie", price: 4.99 },
       { id: "lemon-cream-cookie", name: "Lemon Cream Cookie", price: 4.99 },
       { id: "butterfinger-cookie", name: "Chewy Butterfinger Cookie", price: 4.99 },
-      { id: "nut-goody-bar", name: "Nut Goody Bar", price: 3.95 },
       { id: "blackout-brownie", name: "Blackout Brownie", price: 5.95 },
-      { id: "meltaway-bar", name: "Melt-a-Way Bar", price: 3.95 },
     ],
   },
   {
