@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findItem } from "@/lib/menu";
+import { findItem, optionAddOn } from "@/lib/menu";
 import { sendDeliEmail } from "@/lib/email";
 import { paymentMode } from "@/lib/payment";
 import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
 
 const MAX_LINES = 100;
 
+type ModIn = { optionId: string; label: string };
 type LineIn = {
   id: string;
   variantLabel?: string;
   qty: number;
   note?: string;
   forName?: string;
+  mods?: ModIn[];
 };
 type OrderIn = {
   name: string;
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest) {
     label: string;
     qty: number;
     unit: number;
+    mods?: string[];
     note?: string;
     forName?: string;
   }[] = [];
@@ -87,11 +90,24 @@ export async function POST(req: NextRequest) {
       unit = v.price;
       label = `${item.name} — ${v.label}`;
     }
+    // Re-price options/mods from the canonical option definitions.
+    const modLabels: string[] = [];
+    if (Array.isArray(l.mods) && item.options) {
+      for (const m of l.mods.slice(0, 10)) {
+        const opt = item.options.find((o) => o.id === m?.optionId);
+        if (!opt) continue;
+        const choice = opt.choices.find((c) => c.label === m?.label);
+        if (!choice) continue;
+        unit += choice.price ?? 0;
+        modLabels.push(choice.label);
+      }
+    }
     total += unit * qty;
     lines.push({
       label,
       qty,
       unit,
+      mods: modLabels.length ? modLabels : undefined,
       note: oneLine(l.note, 200) || undefined,
       forName: oneLine(l.forName, 60) || undefined,
     });
@@ -112,6 +128,7 @@ export async function POST(req: NextRequest) {
     .map(
       (l) =>
         `  ${l.qty} × ${l.label}  ${money(l.unit * l.qty)}` +
+        (l.mods && l.mods.length ? `\n      ${l.mods.join(", ")}` : "") +
         (l.forName ? `\n      for: ${l.forName}` : "") +
         (l.note ? `\n      note: ${l.note}` : "")
     )

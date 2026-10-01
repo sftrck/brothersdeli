@@ -5,13 +5,20 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
-import { MENU, type MenuItem } from "@/lib/menu";
+import {
+  MENU,
+  needsCustomizer,
+  optionAddOn,
+  type MenuItem,
+} from "@/lib/menu";
 
+type CartMod = { optionId: string; label: string; price: number };
 type CartLine = {
   uid: number;
   id: string;
   name: string;
   variantLabel?: string;
+  mods: CartMod[];
   unit: number;
   qty: number;
   forName: string;
@@ -25,7 +32,6 @@ let LINE_UID = 0;
 
 export default function OrderPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [variantSel, setVariantSel] = useState<Record<string, string>>({});
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">(
     "pickup"
   );
@@ -41,6 +47,12 @@ export default function OrderPage() {
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  // Open customizer for an item that has a size and/or options.
+  const [customizing, setCustomizing] = useState<null | {
+    item: MenuItem;
+    variantLabel?: string;
+    sel: Record<string, string>; // optionId -> chosen choice label ("" = none)
+  }>(null);
   const router = useRouter();
 
   // Restore a saved cart so items survive leaving the site or changing pages.
@@ -82,16 +94,18 @@ export default function OrderPage() {
     [cart]
   );
 
-  function addItem(item: MenuItem) {
-    let variantLabel: string | undefined;
-    let unit = item.price ?? 0;
-    if (item.variants && item.variants.length) {
-      const chosen = variantSel[item.id] || item.variants[0].label;
-      const v =
-        item.variants.find((x) => x.label === chosen) || item.variants[0];
-      variantLabel = v.label;
-      unit = v.price;
-    }
+  function pushLine(
+    item: MenuItem,
+    variantLabel: string | undefined,
+    mods: CartMod[]
+  ) {
+    const base =
+      item.variants && variantLabel
+        ? item.variants.find((v) => v.label === variantLabel)?.price ??
+          item.price ??
+          0
+        : item.price ?? 0;
+    const unit = base + mods.reduce((s, m) => s + m.price, 0);
     setCart((prev) => [
       ...prev,
       {
@@ -99,12 +113,60 @@ export default function OrderPage() {
         id: item.id,
         name: item.name,
         variantLabel,
+        mods,
         unit,
         qty: 1,
         forName: "",
       },
     ]);
   }
+
+  function addItem(item: MenuItem) {
+    if (needsCustomizer(item)) {
+      const sel: Record<string, string> = {};
+      for (const opt of item.options ?? []) {
+        sel[opt.id] = opt.required ? opt.choices[0].label : "";
+      }
+      setCustomizing({
+        item,
+        variantLabel: item.variants?.length ? item.variants[0].label : undefined,
+        sel,
+      });
+      return;
+    }
+    pushLine(item, undefined, []);
+  }
+
+  function confirmCustomizer() {
+    if (!customizing) return;
+    const { item, variantLabel, sel } = customizing;
+    const mods: CartMod[] = [];
+    for (const opt of item.options ?? []) {
+      const choice = sel[opt.id];
+      if (choice) {
+        mods.push({ optionId: opt.id, label: choice, price: optionAddOn(opt, choice) });
+      }
+    }
+    pushLine(item, variantLabel, mods);
+    setCustomizing(null);
+  }
+
+  // live price preview inside the customizer
+  const customizerUnit = useMemo(() => {
+    if (!customizing) return 0;
+    const { item, variantLabel, sel } = customizing;
+    const base =
+      item.variants && variantLabel
+        ? item.variants.find((v) => v.label === variantLabel)?.price ??
+          item.price ??
+          0
+        : item.price ?? 0;
+    let add = 0;
+    for (const opt of item.options ?? []) {
+      if (sel[opt.id]) add += optionAddOn(opt, sel[opt.id]);
+    }
+    return base + add;
+  }, [customizing]);
 
   function changeQty(uid: number, delta: number) {
     setCart((prev) =>
@@ -158,6 +220,7 @@ export default function OrderPage() {
             variantLabel: l.variantLabel,
             qty: l.qty,
             forName: l.forName,
+            mods: l.mods.map((m) => ({ optionId: m.optionId, label: m.label })),
           })),
         }),
       });
@@ -174,6 +237,7 @@ export default function OrderPage() {
         lines: cart.map((l) => ({
           name: `${l.name}${l.variantLabel ? ` — ${l.variantLabel}` : ""}`,
           detail: [
+            ...l.mods.map((m) => m.label),
             l.qty > 1 ? `qty ${l.qty}` : "",
             l.forName ? `for ${l.forName}` : "",
           ]
@@ -252,30 +316,11 @@ export default function OrderPage() {
                             ? `${money(item.variants[0].price)}+`
                             : money(item.price ?? 0)}
                         </span>
-                        {item.variants && (
-                          <select
-                            value={
-                              variantSel[item.id] || item.variants[0].label
-                            }
-                            onChange={(e) =>
-                              setVariantSel((s) => ({
-                                ...s,
-                                [item.id]: e.target.value,
-                              }))
-                            }
-                          >
-                            {item.variants.map((v) => (
-                              <option key={v.label} value={v.label}>
-                                {v.label} — {money(v.price)}
-                              </option>
-                            ))}
-                          </select>
-                        )}
                         <button
                           className="add-btn"
                           onClick={() => addItem(item)}
                         >
-                          Add +
+                          {needsCustomizer(item) ? "Choose" : "Add +"}
                         </button>
                       </div>
                     </div>
@@ -325,6 +370,11 @@ export default function OrderPage() {
                         {l.name}
                         {l.variantLabel ? ` — ${l.variantLabel}` : ""}
                       </div>
+                      {l.mods.length > 0 && (
+                        <div className="l-mods">
+                          {l.mods.map((m) => m.label).join(" · ")}
+                        </div>
+                      )}
                       <input
                         className="for-name"
                         value={l.forName}
@@ -459,6 +509,100 @@ export default function OrderPage() {
         className={`cart-overlay${cartOpen ? " open" : ""}`}
         onClick={() => setCartOpen(false)}
       />
+
+      {/* Customizer modal — size / bread / cheese / protein / cookie flavor */}
+      {customizing && (
+        <div className="cz-overlay" onClick={() => setCustomizing(null)}>
+          <div className="cz" onClick={(e) => e.stopPropagation()}>
+            <div className="cz-head">
+              <div>
+                <h3>{customizing.item.name}</h3>
+                {customizing.item.desc && <p>{customizing.item.desc}</p>}
+              </div>
+              <button
+                className="cart-close"
+                aria-label="Close"
+                onClick={() => setCustomizing(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {customizing.item.variants &&
+              customizing.item.variants.length > 1 && (
+                <div className="cz-opt">
+                  <div className="cz-label">Size</div>
+                  {customizing.item.variants.map((v) => (
+                    <label className="cz-choice" key={v.label}>
+                      <input
+                        type="radio"
+                        name="size"
+                        checked={customizing.variantLabel === v.label}
+                        onChange={() =>
+                          setCustomizing((c) =>
+                            c ? { ...c, variantLabel: v.label } : c
+                          )
+                        }
+                      />
+                      <span>{v.label}</span>
+                      <span className="cz-price">{money(v.price)}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+            {(customizing.item.options ?? []).map((opt) => (
+              <div className="cz-opt" key={opt.id}>
+                <div className="cz-label">
+                  {opt.label}
+                  {opt.required && <span className="cz-req">required</span>}
+                </div>
+                {!opt.required && (
+                  <label className="cz-choice">
+                    <input
+                      type="radio"
+                      name={opt.id}
+                      checked={customizing.sel[opt.id] === ""}
+                      onChange={() =>
+                        setCustomizing((c) =>
+                          c
+                            ? { ...c, sel: { ...c.sel, [opt.id]: "" } }
+                            : c
+                        )
+                      }
+                    />
+                    <span>None</span>
+                  </label>
+                )}
+                {opt.choices.map((ch) => (
+                  <label className="cz-choice" key={ch.label}>
+                    <input
+                      type="radio"
+                      name={opt.id}
+                      checked={customizing.sel[opt.id] === ch.label}
+                      onChange={() =>
+                        setCustomizing((c) =>
+                          c
+                            ? { ...c, sel: { ...c.sel, [opt.id]: ch.label } }
+                            : c
+                        )
+                      }
+                    />
+                    <span>{ch.label}</span>
+                    {ch.price ? (
+                      <span className="cz-price">+{money(ch.price)}</span>
+                    ) : null}
+                  </label>
+                ))}
+              </div>
+            ))}
+
+            <button className="submit-btn" onClick={confirmCustomizer}>
+              Add to order · {money(customizerUnit)}
+            </button>
+          </div>
+        </div>
+      )}
 
       <SiteFooter />
     </>
