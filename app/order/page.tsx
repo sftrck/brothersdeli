@@ -62,7 +62,13 @@ export default function OrderPage() {
       if (raw) {
         const saved = JSON.parse(raw);
         if (Array.isArray(saved.cart) && saved.cart.length) {
-          setCart(saved.cart as CartLine[]);
+          // Normalize lines saved by older builds (e.g. before `mods` existed)
+          // so render/submit never read fields off an undefined value.
+          const restored = (saved.cart as CartLine[]).map((l) => ({
+            ...l,
+            mods: Array.isArray(l.mods) ? l.mods : [],
+          }));
+          setCart(restored);
           const maxUid = saved.cart.reduce(
             (m: number, l: CartLine) => Math.max(m, l.uid || 0),
             0
@@ -220,7 +226,7 @@ export default function OrderPage() {
             variantLabel: l.variantLabel,
             qty: l.qty,
             forName: l.forName,
-            mods: l.mods.map((m) => ({ optionId: m.optionId, label: m.label })),
+            mods: (l.mods ?? []).map((m) => ({ optionId: m.optionId, label: m.label })),
           })),
         }),
       });
@@ -237,7 +243,7 @@ export default function OrderPage() {
         lines: cart.map((l) => ({
           name: `${l.name}${l.variantLabel ? ` — ${l.variantLabel}` : ""}`,
           detail: [
-            ...l.mods.map((m) => m.label),
+            ...(l.mods ?? []).map((m) => m.label),
             l.qty > 1 ? `qty ${l.qty}` : "",
             l.forName ? `for ${l.forName}` : "",
           ]
@@ -370,7 +376,7 @@ export default function OrderPage() {
                         {l.name}
                         {l.variantLabel ? ` — ${l.variantLabel}` : ""}
                       </div>
-                      {l.mods.length > 0 && (
+                      {(l.mods?.length ?? 0) > 0 && (
                         <div className="l-mods">
                           {l.mods.map((m) => m.label).join(" · ")}
                         </div>
