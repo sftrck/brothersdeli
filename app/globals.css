@@ -189,7 +189,7 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .add-btn:hover{background:var(--green)}
 
 /* Cart */
-.cart{position:sticky;top:78px;background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm)}
+.cart{position:sticky;top:78px;max-height:calc(100vh - 98px);overflow-y:auto;overscroll-behavior:contain;background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm)}
 .cart h2{font-family:var(--display);text-transform:uppercase;font-size:1.4rem;color:var(--green-deep)}
 .cart .empty{color:var(--ink-soft);font-size:.92rem;margin-top:12px}
 .cart-line{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
