@@ -135,24 +135,26 @@ export async function POST(req: NextRequest) {
     .join("\n");
 
   const text = [
-    `NEW ${isDelivery ? "DELIVERY" : "PICKUP"} ORDER  ${orderId}`,
+    `THE BROTHERS DELI — ${isDelivery ? "DELIVERY" : "PICKUP"} ORDER`,
+    `${orderId} · ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}`,
     ``,
-    `Method: ${isDelivery ? "DELIVERY" : "Pickup — skyway counter, Suite #220"}`,
-    `Name:   ${name}`,
-    `Phone:  ${phone}`,
-    email ? `Email:  ${email}` : ``,
-    isDelivery && body.address
-      ? `Address: ${multiLine(body.address, 300)}`
-      : ``,
-    body.pickupTime ? `Time:   ${oneLine(body.pickupTime, 60)}` : ``,
+    `BILL TO`,
+    `  ${name}`,
+    `  ${phone}${email ? ` · ${email}` : ""}`,
     ``,
-    `Items:`,
+    `FULFILLMENT`,
+    `  ${isDelivery ? "DELIVERY" : "Pickup — skyway counter, Suite #220"}`,
+    isDelivery && body.address ? `  Address: ${multiLine(body.address, 300)}` : ``,
+    body.pickupTime ? `  Time: ${oneLine(body.pickupTime, 60)}` : ``,
+    ``,
+    `ITEMS`,
     body_lines,
     ``,
-    `Subtotal: ${money(total)}`,
+    `  ------------------------------`,
+    `  SUBTOTAL:  ${money(total)}`,
     isDelivery
-      ? `(Tax and any delivery fee added by the deli.)`
-      : `(Tax applied at the register.)`,
+      ? `  (Tax and any delivery fee added by the deli.)`
+      : `  (Tax applied at the register.)`,
     ``,
     body.notes ? `Order notes: ${multiLine(body.notes, 500)}` : ``,
     ``,
