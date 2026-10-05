@@ -338,37 +338,40 @@ export default function OrderPage() {
           </div>
 
           <aside className={`cart${cartOpen ? " open" : ""}`}>
-            <div className="cart-head">
-              <h2>Your Order</h2>
-              <button
-                type="button"
-                className="cart-close"
-                aria-label="Close order"
-                onClick={() => setCartOpen(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="fulfill" role="group" aria-label="Pickup or delivery">
-              <button
-                type="button"
-                className={fulfillment === "pickup" ? "on" : ""}
-                onClick={() => setFulfillment("pickup")}
-              >
-                Pickup
-              </button>
-              <button
-                type="button"
-                className={fulfillment === "delivery" ? "on" : ""}
-                onClick={() => setFulfillment("delivery")}
-              >
-                Delivery
-              </button>
+            <div className="cart-top">
+              <div className="cart-head">
+                <h2>Your Order</h2>
+                <button
+                  type="button"
+                  className="cart-close"
+                  aria-label="Close order"
+                  onClick={() => setCartOpen(false)}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="fulfill" role="group" aria-label="Pickup or delivery">
+                <button
+                  type="button"
+                  className={fulfillment === "pickup" ? "on" : ""}
+                  onClick={() => setFulfillment("pickup")}
+                >
+                  Pickup
+                </button>
+                <button
+                  type="button"
+                  className={fulfillment === "delivery" ? "on" : ""}
+                  onClick={() => setFulfillment("delivery")}
+                >
+                  Delivery
+                </button>
+              </div>
             </div>
             {cart.length === 0 ? (
               <p className="empty">Nothing added yet. Pick something tasty.</p>
             ) : (
               <>
+                <div className="cart-scroll">
                 {cart.map((l) => (
                   <div className="cart-line" key={l.uid}>
                     <div style={{ flex: 1 }}>
@@ -404,15 +407,6 @@ export default function OrderPage() {
                     </div>
                   </div>
                 ))}
-                <div className="cart-total">
-                  <span>Subtotal</span>
-                  <span>{money(total)}</span>
-                </div>
-                <div className="tax-note">
-                  {fulfillment === "delivery"
-                    ? "Tax and any delivery fee confirmed by the deli."
-                    : "Tax added at the register."}
-                </div>
 
                 <div className="field">
                   <label>Name *</label>
@@ -480,16 +474,27 @@ export default function OrderPage() {
                     placeholder="Rye bread, extra mustard…"
                   />
                 </div>
+                </div>
 
-                {error && <div className="form-err">{error}</div>}
-
-                <button
-                  className="submit-btn"
-                  onClick={submit}
-                  disabled={submitting}
-                >
-                  {submitting ? "Sending…" : "Continue to Checkout"}
-                </button>
+                <div className="cart-foot">
+                  {error && <div className="form-err">{error}</div>}
+                  <div className="cart-total">
+                    <span>Subtotal</span>
+                    <span>{money(total)}</span>
+                  </div>
+                  <div className="tax-note">
+                    {fulfillment === "delivery"
+                      ? "Tax and any delivery fee confirmed by the deli."
+                      : "Tax added at the register."}
+                  </div>
+                  <button
+                    className="submit-btn"
+                    onClick={submit}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Sending…" : "Continue to Checkout"}
+                  </button>
+                </div>
               </>
             )}
           </aside>

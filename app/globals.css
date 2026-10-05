@@ -189,7 +189,13 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .add-btn:hover{background:var(--green)}
 
 /* Cart */
-.cart{position:sticky;top:78px;max-height:calc(100vh - 98px);overflow-y:auto;overscroll-behavior:contain;background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm)}
+.cart{position:sticky;top:78px;max-height:calc(100vh - 98px);display:flex;flex-direction:column;background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm)}
+.cart-top{flex-shrink:0}
+.cart-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.cart-scroll::-webkit-scrollbar{width:8px}
+.cart-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.cart-scroll::-webkit-scrollbar-track{background:transparent}
+.cart-foot{flex-shrink:0;margin-top:14px;padding-top:16px;border-top:2px solid var(--line)}
 .cart h2{font-family:var(--display);text-transform:uppercase;font-size:1.4rem;color:var(--green-deep)}
 .cart .empty{color:var(--ink-soft);font-size:.92rem;margin-top:12px}
 .cart-line{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
@@ -200,7 +206,7 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .qty button{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-weight:700;line-height:1}
 .qty span{min-width:18px;text-align:center;font-weight:700;font-size:.9rem}
 .l-remove{background:none;border:none;color:var(--burgundy);font-size:.78rem;cursor:pointer;padding:0;margin-top:4px}
-.cart-total{display:flex;justify-content:space-between;font-weight:800;font-size:1.1rem;margin-top:14px;padding-top:14px;border-top:2px solid var(--line);color:var(--green-deep)}
+.cart-total{display:flex;justify-content:space-between;font-weight:800;font-size:1.15rem;color:var(--green-deep)}
 .cart .tax-note{font-size:.76rem;color:var(--ink-soft);margin-top:4px}
 
 /* Forms */
@@ -364,7 +370,7 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
   /* The cart becomes a bottom-sheet drawer */
   .cart{
     position:fixed;left:0;right:0;bottom:0;z-index:90;margin:0;
-    max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;
+    max-height:88vh;border-radius:20px 20px 0 0;
     transform:translateY(100%);transition:transform .26s ease;
     box-shadow:0 -20px 50px -20px rgba(0,0,0,.5)
   }
