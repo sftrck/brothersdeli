@@ -96,18 +96,55 @@ const dinaMeat: MenuOption = {
 // Common bundles
 const breadAndCheese: MenuOption[] = [breadOption(), cheeseOption];
 
+// Reusable bread subsets
+const RYE_PUMP: OptionChoice[] = [{ label: "Rye" }, { label: "Pumpernickel" }];
+const WHEAT_CHALLAH: OptionChoice[] = [
+  { label: "Whole Wheat" },
+  { label: "Challah" },
+];
+
+// Breakfast egg sandwiches: bagel or wrap, with optional tomato / avocado.
+const breakfastBase: MenuOption = {
+  id: "base",
+  label: "Bagel or wrap",
+  required: true,
+  choices: [{ label: "Bagel" }, { label: "Tortilla Wrap" }],
+};
+const addTomatoes: MenuOption = {
+  id: "tomatoes",
+  label: "Add tomatoes",
+  choices: [{ label: "Tomatoes", price: 0.95 }],
+};
+const addAvocado: MenuOption = {
+  id: "avocado",
+  label: "Add avocado",
+  choices: [{ label: "Avocado", price: 2.95 }],
+};
+const breakfastOptions: MenuOption[] = [breakfastBase, addTomatoes, addAvocado];
+
+// Fit 500: optional add-a-side ($2 each).
+const fit500Side: MenuOption = {
+  id: "side",
+  label: "Add a side",
+  choices: [
+    { label: "Chips", price: 2.0 },
+    { label: "Coleslaw", price: 2.0 },
+    { label: "Potato Salad", price: 2.0 },
+  ],
+};
+
 export const MENU: MenuCategory[] = [
   {
     id: "breakfast",
     name: "Breakfast",
     note: "Egg sandwiches on a bagel or wrap. Add tomatoes $0.95, avocado $2.95.",
     items: [
-      { id: "egg-only", name: "Egg Only", price: 5.95 },
-      { id: "egg-cheese", name: "Egg & Cheese", price: 6.95 },
-      { id: "bacon-egg-cheese", name: "Applewood Bacon, Egg & Cheese", price: 9.45 },
-      { id: "ham-egg-cheese", name: "Ham, Egg & Cheese", price: 9.45 },
-      { id: "pastrami-egg-cheese", name: "Pastrami, Egg & Cheese", price: 9.45 },
-      { id: "sausage-egg-cheese", name: "Sausage, Egg & Cheese", price: 9.45 },
+      { id: "egg-only", name: "Egg Only", price: 5.95, options: breakfastOptions },
+      { id: "egg-cheese", name: "Egg & Cheese", price: 6.95, options: breakfastOptions },
+      { id: "bacon-egg-cheese", name: "Applewood Bacon, Egg & Cheese", price: 9.45, options: breakfastOptions },
+      { id: "ham-egg-cheese", name: "Ham, Egg & Cheese", price: 9.45, options: breakfastOptions },
+      { id: "pastrami-egg-cheese", name: "Pastrami, Egg & Cheese", price: 9.45, options: breakfastOptions },
+      { id: "sausage-egg-cheese", name: "Sausage, Egg & Cheese", price: 9.45, options: breakfastOptions },
       {
         id: "power-sandwich",
         name: "Power Sandwich",
@@ -137,9 +174,9 @@ export const MENU: MenuCategory[] = [
       { id: "holy-smokes", name: "Holy Smokes", desc: "Hot turkey pastrami, tomatoes, sweet red onions, Russian dressing and melted provolone on rustic ciabatta.", price: 14.0 },
       { id: "miyas-dc-delight", name: "Miyas D.C. Delight", desc: "Fresh roast turkey, baby spinach, cranberry mustard, havarti, tomatoes on sweet grain bread.", price: 14.0 },
       { id: "turkey-melt", name: "Turkey Melt", desc: "Turkey, sweet red onions, tomatoes, melted pepperjack and jionaise on grilled rye.", price: 14.0 },
-      { id: "kennys-california-reuben", name: "Kenny's California Reuben", desc: "Smoked turkey, cole slaw, Swiss and Russian dressing on grilled rye or pumpernickel.", price: 14.0, options: [breadOption([{ label: "Rye" }, { label: "Pumpernickel" }]), cheeseOption] },
+      { id: "kennys-california-reuben", name: "Kenny's California Reuben", desc: "Smoked turkey, cole slaw, Swiss and Russian dressing on grilled rye or pumpernickel.", price: 14.0, options: [breadOption(RYE_PUMP)] },
       { id: "brother-len", name: "Brother Len", desc: "Roasted turkey topped with creamy cole slaw and dressing on egg bread.", price: 13.5 },
-      { id: "mama-dora", name: "Mama Dora", desc: "Fresh roasted turkey, avocado, tomatoes and honey mustard on sourdough or wheat.", price: 14.0 },
+      { id: "mama-dora", name: "Mama Dora", desc: "Fresh roasted turkey, avocado, tomatoes and honey mustard on choice of bread.", price: 14.0, options: [breadOption([{ label: "Sourdough" }, { label: "Wheat" }, { label: "White" }])] },
       { id: "turkey-clubhouse", name: "Turkey Clubhouse", desc: "Grilled turkey, applewood bacon, tomatoes, swiss and Russian dressing on egg bread.", price: 14.0 },
       // Corned Beef
       {
@@ -154,7 +191,7 @@ export const MENU: MenuCategory[] = [
         options: [cheeseOption],
       },
       { id: "dinas-delight", name: "Dina's Delight", desc: "Hot corned beef or pastrami, homemade cole slaw and Russian dressing on double baked rye.", price: 14.5, options: [dinaMeat] },
-      { id: "brothers-reuben", name: "Brothers Reuben", desc: "Corned beef, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5, options: [breadOption([{ label: "Rye" }, { label: "Pumpernickel" }]), cheeseOption] },
+      { id: "brothers-reuben", name: "Brothers Reuben", desc: "Corned beef, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5, options: [breadOption(RYE_PUMP)] },
       { id: "danny-rose", name: "Danny Rose", desc: "Our own corned beef and pastrami on a double baked rye.", price: 14.5 },
       { id: "cousin-tony", name: "Cousin Tony", desc: "Hot corned beef and pastrami, tomatoes, swiss, red onions, thousand island on double baked rye.", price: 14.5 },
       { id: "papa-mike", name: "Papa Mike", desc: "Corned beef, fresh roasted turkey, swiss and dressing on grilled rye.", price: 14.5 },
@@ -171,9 +208,9 @@ export const MENU: MenuCategory[] = [
         options: [cheeseOption],
       },
       { id: "messy-bessy", name: "Messy Bessy", desc: "Pastrami, corned beef, tomatoes, cole slaw, swiss, red onion, thousand island on ciabatta.", price: 14.5 },
-      { id: "the-pepe", name: "The Pepe", desc: "Pastrami smoked then steamed 3 hours, melted pepper cheese on grilled rye or pumpernickel.", price: 14.5 },
-      { id: "pastrami-reuben", name: "Pastrami Reuben", desc: "Pastrami, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5, options: [breadOption([{ label: "Rye" }, { label: "Pumpernickel" }]), cheeseOption] },
-      { id: "the-hots-pepe", name: "The Hots Pepe", desc: "Pastrami, pepper cheese, onion and hot sauce on grilled rye or pumpernickel.", price: 14.5 },
+      { id: "the-pepe", name: "The Pepe", desc: "Pastrami smoked then steamed 3 hours, melted pepper cheese on choice of grilled bread.", price: 14.5, options: [breadOption(RYE_PUMP)] },
+      { id: "pastrami-reuben", name: "Pastrami Reuben", desc: "Pastrami, Swiss, sauerkraut and Russian dressing on grilled rye or pumpernickel.", price: 14.5, options: [breadOption(RYE_PUMP)] },
+      { id: "the-hots-pepe", name: "The Hots Pepe", desc: "Pastrami, pepper cheese, onion and hot sauce on choice of grilled bread.", price: 14.5, options: [breadOption(RYE_PUMP)] },
       // Chicken
       { id: "jimbos-buffalo-chicken", group: "Chicken", name: "Jimbo's Buffalo Chicken", desc: "Chicken breast, buffalo sauce, lettuce, tomatoes and blue cheese on ciabatta.", price: 14.0 },
       { id: "spicy-chicken", name: "Spicy Chicken", desc: "Grilled chicken, tomato, red onion, creamy salsa and pepper cheese on ciabatta.", price: 14.0 },
@@ -181,7 +218,7 @@ export const MENU: MenuCategory[] = [
       { id: "chicken-blt", name: "Chicken BLT", desc: "Grilled chicken, cheddar, bacon, lettuce and tomato on ciabatta.", price: 14.0 },
       { id: "pesto-chicken", name: "Pesto Chicken", desc: "Roasted chicken breast, tomatoes and pesto mayo on ciabatta.", price: 14.0 },
       // Beef / Brisket
-      { id: "big-als-warm-roast-beef", group: "Beef & Brisket", name: "Big Al's Warm Roast Beef", desc: "Garlic roasted tri tip on sourdough, lettuce, tomato, red onion and horseradish sauce.", price: 13.99, options: breadAndCheese },
+      { id: "big-als-warm-roast-beef", group: "Beef & Brisket", name: "Big Al's Warm Roast Beef", desc: "Garlic roasted tri tip on sourdough, lettuce, tomato, red onion and horseradish sauce.", price: 13.99, options: [cheeseOption] },
       { id: "francos-italian-beef", name: "Francos Italian Beef", desc: "Garlic roasted steak, red peppers, banana peppers, horseradish, provolone on ciabatta with Italian dip.", price: 13.99 },
       { id: "davids-french-dip", name: "David's French Dip", desc: "Garlic roasted tri tip on a ciabatta roll with au jus.", price: 13.0, options: [cheeseOption] },
       { id: "garlic-roasted-steak", name: "Garlic Roasted Steak Sandwich", desc: "Steak, red onions, apple smoked bacon and cheddar on garlic toasted ciabatta.", price: 14.5 },
@@ -189,22 +226,22 @@ export const MENU: MenuCategory[] = [
       // Pork
       { id: "smoked-ham-sandwich", group: "Pork", name: "Smoked Ham Sandwich", desc: "Choice of bread, lettuce and tomato.", price: 11.5, options: breadAndCheese },
       { id: "ellies-hot-cuban", name: "Ellie's Hot Cuban", desc: "Spicy sausage, smoked ham, pickles, onions, provolone and spicy mustard on ciabatta.", price: 13.99 },
-      { id: "the-yessak", name: "The Yessak", desc: "Smoked ham, roasted turkey, sweet hot mustard, cheddar, red onions, tomatoes on sweet grain or challah.", price: 13.99 },
-      { id: "real-good-blt", name: "Real Good BLT", desc: "Apple smoked bacon, tomatoes, lettuce and mayo on challah or sweet grain toast.", price: 11.5 },
+      { id: "the-yessak", name: "The Yessak", desc: "Smoked ham, roasted turkey, sweet hot mustard, cheddar, red onions and tomatoes on choice of bread.", price: 13.99, options: [breadOption(WHEAT_CHALLAH)] },
+      { id: "real-good-blt", name: "Real Good BLT", desc: "Apple smoked bacon, tomatoes, lettuce and mayo on choice of bread.", price: 11.5, options: [breadOption([{ label: "Whole Wheat" }, { label: "White" }, { label: "Sourdough" }, { label: "Rye" }, { label: "Pumpernickel" }, { label: "Ciabatta" }])] },
       { id: "hollywood-joes", name: "Hollywood Joes", desc: "Smoked ham, melted havarti on grilled challah with sweet hot mustard.", price: 13.99 },
-      { id: "grownup-grilled-cheese-bacon", name: "Grown Up Grilled Cheese #2", desc: "Grilled cheese with bacon and tomatoes.", price: 12.99 },
+      { id: "grownup-grilled-cheese-bacon", name: "Grown Up Grilled Cheese #2", desc: "Grilled cheese with bacon and tomatoes on choice of bread.", price: 12.99, options: [breadOption(WHEAT_CHALLAH)] },
       // Fish
       { id: "charlies-tuna-salad", group: "Fish", name: "Charlie's Tuna Salad", desc: "White albacore tuna, red peppers, celery, mayo and lemon, with lettuce and tomato.", price: 12.5, options: breadAndCheese },
       { id: "grilled-salmon-sandwich", name: "Grilled Salmon", desc: "6oz salmon with seafood rub, toasted egg bun, baby spinach, tomatoes and cucumbers.", price: 14.99 },
       { id: "rd-tuna-melt", name: "R and D's Tuna Melt", desc: "White tuna on grilled challah with cheddar and tomatoes.", price: 12.99 },
-      { id: "aidens-tuna-avocado-melt", name: "Aiden's Tuna Avocado Melt", desc: "White tuna, melted pepper cheese, avocado and tomato on grilled challah or sweet grain.", price: 12.99 },
+      { id: "aidens-tuna-avocado-melt", name: "Aiden's Tuna Avocado Melt", desc: "White tuna, melted pepper cheese, avocado and tomato on choice of grilled bread.", price: 12.99, options: [breadOption(WHEAT_CHALLAH)] },
       // Veggie
       { id: "brother-b-veggie", group: "Veggie", name: "Brother B-Veggie", desc: "Tomatoes, iceberg, avocado, cucumbers, red peppers, havarti on sweet grain with honey cup dressing.", price: 11.5 },
-      { id: "grownup-grilled-cheese-tomatoes", name: "Grown Up Grilled Cheese with Tomatoes", desc: "On challah or sweet grain.", price: 8.99 },
+      { id: "grownup-grilled-cheese-tomatoes", name: "Grown Up Grilled Cheese with Tomatoes", desc: "On choice of bread.", price: 8.99, options: [breadOption(WHEAT_CHALLAH)] },
       { id: "cousin-steves-tomato-havarti", name: "Cousin Steve's Tomato Havarti", desc: "Roasted red peppers, tomatoes, havarti, spinach, pesto and vinaigrette on sweet grain.", price: 11.5 },
-      { id: "grownup-grilled-cheese", name: "Grown Up Grilled Cheese", desc: "On challah or sweet grain.", price: 7.49 },
+      { id: "grownup-grilled-cheese", name: "Grown Up Grilled Cheese", desc: "On choice of bread.", price: 7.49, options: [breadOption(WHEAT_CHALLAH)] },
       { id: "egg-salad", name: "Egg Salad", desc: "House made with red peppers, green onions and mayo, with lettuce and tomato.", price: 11.5, options: breadAndCheese },
-      { id: "grilled-cheese-tomato-soup", name: "Grilled Cheese & Cup of Tomato Soup", desc: "Plain grilled cheese on white with a cup of homemade tomato soup.", price: 14.5 },
+      { id: "grilled-cheese-tomato-soup", name: "Grilled Cheese & Cup of Tomato Soup", desc: "Grilled cheese with a cup of homemade tomato soup.", price: 14.5, options: [breadOption(WHEAT_CHALLAH)] },
       // Burgers
       { id: "burger-plain", group: "Burgers", name: "Plain Burger", desc: "Served with fresh cut fries.", price: 9.99 },
       { id: "bbq-bacon-cheeseburger", name: "BBQ Bacon Cheeseburger", desc: "Served with fresh cut fries.", price: 14.0 },
@@ -241,13 +278,12 @@ export const MENU: MenuCategory[] = [
     name: "Fit 500",
     note: "Healthy choices; these do not include a side. Add chips, potato salad or coleslaw $2 each.",
     items: [
-      { id: "light-reuben", name: "Light Reuben", desc: "Sliced turkey, low-fat Swiss, low-sodium kraut, light Russian on dry grilled pumpernickel.", price: 10.5 },
-      { id: "southwest-turkey-wrap", name: "Southwest Turkey Wrap", desc: "Smoked turkey, lettuce, cheese, red onions, cilantro salsa, whole-wheat wrap.", price: 10.5 },
-      { id: "fit-turkey-club", name: "Fit Turkey Club", desc: "Roasted turkey, turkey bacon, lettuce, tomato, light mayo, whole-wheat toast.", price: 10.5 },
-      { id: "roasted-spicy-steak-wrap", name: "Roasted Spicy Steak Wrap", desc: "Choice sirloin in light teriyaki, red peppers, onions, shredded lettuce.", price: 10.5 },
-      { id: "asian-chicken-wrap", name: "Asian Chicken Wrap", desc: "Roasted chicken, Napa cabbage, red peppers, cucumbers, green onions, lime peanut vinaigrette.", price: 10.5 },
-      { id: "grilled-salmon-side-salad", name: "Grilled Salmon & Side Salad", desc: "Grilled wild salmon, mixed green salad, white balsamic dressing.", price: 13.99 },
-      { id: "bowl-chicken-chili", name: "Bowl of Chicken Chili", price: 8.0 },
+      { id: "light-reuben", name: "Light Reuben", desc: "Sliced turkey, low-fat Swiss, low-sodium kraut, light Russian on dry grilled pumpernickel.", price: 10.5, options: [fit500Side] },
+      { id: "southwest-turkey-wrap", name: "Southwest Turkey Wrap", desc: "Smoked turkey, lettuce, cheese, red onions, cilantro salsa, whole-wheat wrap.", price: 10.5, options: [fit500Side] },
+      { id: "fit-turkey-club", name: "Fit Turkey Club", desc: "Roasted turkey, turkey bacon, lettuce, tomato, light mayo, whole-wheat toast.", price: 10.5, options: [fit500Side] },
+      { id: "roasted-spicy-steak-wrap", name: "Roasted Spicy Steak Wrap", desc: "Choice sirloin in light teriyaki, red peppers, onions, shredded lettuce.", price: 10.5, options: [fit500Side] },
+      { id: "asian-chicken-wrap", name: "Asian Chicken Wrap", desc: "Roasted chicken, Napa cabbage, red peppers, cucumbers, green onions, lime peanut vinaigrette.", price: 10.5, options: [fit500Side] },
+      { id: "grilled-salmon-side-salad", name: "Grilled Salmon & Side Salad", desc: "Grilled wild salmon, mixed green salad, white balsamic dressing.", price: 13.99, options: [fit500Side] },
     ],
   },
   {

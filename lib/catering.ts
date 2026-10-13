@@ -2,7 +2,16 @@
 // Prices from the live catering menu. Used by both the catering page and the
 // /api/catering route so the estimate is priced identically on the server.
 
-export type CateringChoice = { id: string; label: string; options: string[] };
+export type CateringChoice = {
+  id: string;
+  label: string;
+  options: string[];
+  // Only offered when the headcount is at least this (e.g. a 2nd salad at 20+).
+  minHeadcount?: number;
+};
+
+// Sentinel option so an optional choice (e.g. the 2nd salad) can be left off.
+export const NO_SECOND_SALAD = "No second salad";
 export type CateringItem = {
   id: string;
   name: string;
@@ -30,6 +39,9 @@ export const CATERING_SALADS = [
   "Southwest Buffalo",
   "Chinese Chicken",
   "Mediterranean Chicken Quinoa",
+  "Moroccan Chicken",
+  "Salmon",
+  "Caesar Chicken",
 ];
 export const CATERING_SIDES = ["Potato Salad", "Coleslaw", "Chips"];
 export const SALAD_TRAY_BREAD = ["Popover", "Cornbread"];
@@ -50,7 +62,7 @@ export const CATERING: CateringGroup[] = [
     id: "hot-breakfast",
     name: "Hot Breakfast",
     items: [
-      { id: "all-american-breakfast", name: "All American Breakfast", desc: "Scrambled eggs, toast, bacon, hash browns, mini rolls", perPerson: 16.0 },
+      { id: "all-american-breakfast", name: "All American Breakfast", desc: "Scrambled eggs, bacon, hash browns, mini rolls", perPerson: 16.0 },
       { id: "sunrise-scramble", name: "Sunrise Scramble", desc: "Scrambled eggs, mushrooms, red peppers, onions", perPerson: 10.0 },
       { id: "mexican-scramble", name: "Mexican Scramble", desc: "Scrambled eggs, sausage, peppers, onions; salsa & sour cream", perPerson: 10.0 },
       { id: "western-scramble", name: "Western Scramble", desc: "Scrambled eggs, ham, red peppers, onions", perPerson: 10.0 },
@@ -85,7 +97,7 @@ export const CATERING: CateringGroup[] = [
       { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "A variety of sandwiches with cheese, lettuce, tomatoes, condiments and kosher dill, plus a mini dessert. Served with two sides.", perPerson: 17.99, chooses: [{ id: "side1", label: "First side", options: BUDGET_SIDES }, { id: "side2", label: "Second side", options: BUDGET_SIDES }] },
       { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese and dills", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }] },
       { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Variety of wrap sandwiches", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }] },
-      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus any one salad", perPerson: 14.99, chooses: [{ id: "salad", label: "Choose a salad", options: CATERING_SALADS }] },
+      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
       { id: "cookies-tray", name: "Cookies", perPerson: 4.45 },

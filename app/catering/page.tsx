@@ -7,6 +7,7 @@ import SiteFooter from "../components/SiteFooter";
 import {
   CATERING,
   CATERING_MIN_HEADCOUNT,
+  NO_SECOND_SALAD,
   findCateringItem,
   type CateringChoice,
 } from "@/lib/catering";
@@ -117,7 +118,11 @@ export default function CateringPage() {
     it: NonNullable<ReturnType<typeof findCateringItem>>
   ): string {
     if (!it.chooses) return "";
-    return it.chooses.map((c) => choiceVal(it.id, c)).join(", ");
+    return it.chooses
+      .filter((c) => heads >= (c.minHeadcount ?? 0))
+      .map((c) => choiceVal(it.id, c))
+      .filter((v) => v && v !== NO_SECOND_SALAD)
+      .join(", ");
   }
 
   async function submit() {
@@ -154,7 +159,9 @@ export default function CateringPage() {
             id: it.id,
             choices: it.chooses
               ? Object.fromEntries(
-                  it.chooses.map((c) => [c.id, choiceVal(it.id, c)])
+                  it.chooses
+                    .filter((c) => heads >= (c.minHeadcount ?? 0))
+                    .map((c) => [c.id, choiceVal(it.id, c)])
                 )
               : undefined,
           })),
@@ -269,7 +276,9 @@ export default function CateringPage() {
                           </div>
                         </label>
                         {sel &&
-                          it.chooses?.map((c) => (
+                          it.chooses
+                            ?.filter((c) => heads >= (c.minHeadcount ?? 0))
+                            .map((c) => (
                             <div className="crow-choice" key={c.id}>
                               <label>{c.label}</label>
                               <select
