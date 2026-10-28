@@ -5,6 +5,9 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import AddressAutocomplete, {
+  type PickedAddress,
+} from "../components/AddressAutocomplete";
 import {
   MENU,
   needsCustomizer,
@@ -43,6 +46,7 @@ export default function OrderPage() {
     address: "",
     notes: "",
   });
+  const [addrCoords, setAddrCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -205,8 +209,8 @@ export default function OrderPage() {
       setError("Please enter a valid email (or leave it blank).");
       return;
     }
-    if (fulfillment === "delivery" && !form.address.trim()) {
-      setError("Please add a delivery address.");
+    if (fulfillment === "delivery" && (!form.address.trim() || !addrCoords)) {
+      setError("Please choose your delivery address from the suggestions.");
       return;
     }
     if (cart.length === 0) {
@@ -221,6 +225,8 @@ export default function OrderPage() {
         body: JSON.stringify({
           ...form,
           fulfillment,
+          addressLat: addrCoords?.lat,
+          addressLng: addrCoords?.lng,
           items: cart.map((l) => ({
             id: l.id,
             variantLabel: l.variantLabel,
@@ -236,21 +242,37 @@ export default function OrderPage() {
         return;
       }
       // Hand the order to checkout (Payanywhere).
+      const lines: { name: string; detail?: string; amount: number }[] =
+        cart.map((l) => ({
+          name: `${l.name}${l.variantLabel ? ` — ${l.variantLabel}` : ""}`,
+          detail:
+            [
+              ...(l.mods ?? []).map((m) => m.label),
+              l.qty > 1 ? `qty ${l.qty}` : "",
+              l.forName ? `for ${l.forName}` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ") || undefined,
+          amount: l.unit * l.qty,
+        }));
+      if (
+        fulfillment === "delivery" &&
+        typeof data.deliveryFee === "number" &&
+        data.deliveryFee > 0
+      ) {
+        lines.push({
+          name:
+            "Delivery" +
+            (data.deliveryMiles != null ? ` (${data.deliveryMiles} mi)` : ""),
+          detail: data.deliveryEta ? `est. ${data.deliveryEta}` : undefined,
+          amount: data.deliveryFee,
+        });
+      }
       const pending = {
         type: fulfillment === "delivery" ? "Delivery" : "Pickup",
         orderId: data.orderId,
         total: data.total,
-        lines: cart.map((l) => ({
-          name: `${l.name}${l.variantLabel ? ` — ${l.variantLabel}` : ""}`,
-          detail: [
-            ...(l.mods ?? []).map((m) => m.label),
-            l.qty > 1 ? `qty ${l.qty}` : "",
-            l.forName ? `for ${l.forName}` : "",
-          ]
-            .filter(Boolean)
-            .join(" · ") || undefined,
-          amount: l.unit * l.qty,
-        })),
+        lines,
         contact: { name: form.name, email: form.email, phone: form.phone },
       };
       try {
@@ -418,7 +440,7 @@ export default function OrderPage() {
                     placeholder="Your name"
                   />
                 </div>
-                <div className="field row">
+                <div className={`field${fulfillment === "delivery" ? "" : " row"}`}>
                   <div>
                     <label>Phone *</label>
                     <input
@@ -430,27 +452,39 @@ export default function OrderPage() {
                       inputMode="tel"
                     />
                   </div>
-                  <div>
-                    <label>{fulfillment === "delivery" ? "Time" : "Pickup time"}</label>
-                    <input
-                      value={form.pickupTime}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, pickupTime: e.target.value }))
-                      }
-                      placeholder="ASAP / 12:15"
-                    />
-                  </div>
+                  {fulfillment !== "delivery" && (
+                    <div>
+                      <label>Pickup time</label>
+                      <input
+                        value={form.pickupTime}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, pickupTime: e.target.value }))
+                        }
+                        placeholder="ASAP / 12:15"
+                      />
+                    </div>
+                  )}
                 </div>
                 {fulfillment === "delivery" && (
                   <div className="field">
                     <label>Delivery address *</label>
-                    <textarea
+                    <AddressAutocomplete
                       value={form.address}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, address: e.target.value }))
-                      }
-                      placeholder="Street address, suite/floor, company…"
+                      onType={(text) => {
+                        setForm((f) => ({ ...f, address: text }));
+                        setAddrCoords(null);
+                      }}
+                      onPick={(a: PickedAddress) => {
+                        setForm((f) => ({ ...f, address: a.label }));
+                        setAddrCoords({ lat: a.lat, lng: a.lng });
+                      }}
+                      placeholder="Start typing your street address…"
                     />
+                    <p className="eta-note">
+                      {addrCoords
+                        ? "Address confirmed — we'll quote your delivery fee and time at checkout (about 25 min of prep plus drive time)."
+                        : "Pick your address from the list so we can quote delivery."}
+                    </p>
                   </div>
                 )}
                 <div className="field">

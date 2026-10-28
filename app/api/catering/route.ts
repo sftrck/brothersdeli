@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
 
   let delivery: DeliveryQuote = { fee: 0, calculated: true };
   if (isDelivery) {
-    delivery = await deliveryFee(address);
+    delivery = await deliveryFee(address, undefined, 30);
   }
   const total = foodTotal + gfUpcharge + delivery.fee;
 

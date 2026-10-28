@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { findItem, optionAddOn } from "@/lib/menu";
 import { sendDeliEmail } from "@/lib/email";
 import { paymentMode } from "@/lib/payment";
+import { deliveryFee, type DeliveryQuote } from "@/lib/delivery";
 import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
+
+const PREP_MINUTES = 25; // prep buffer added to the drive-time delivery estimate
 
 const MAX_LINES = 100;
 
@@ -22,6 +25,8 @@ type OrderIn = {
   pickupTime?: string;
   fulfillment?: "pickup" | "delivery";
   address?: string;
+  addressLat?: number;
+  addressLng?: number;
   notes?: string;
   items: LineIn[];
 };
@@ -124,6 +129,29 @@ export async function POST(req: NextRequest) {
   const mode = paymentMode();
   const isDelivery = body.fulfillment === "delivery";
 
+  // Delivery: quote the fee from street distance and an ETA = drive time + prep.
+  const itemsSubtotal = total;
+  let delivery: DeliveryQuote | null = null;
+  let etaText = "";
+  if (isDelivery) {
+    const coords =
+      Number.isFinite(body.addressLat) && Number.isFinite(body.addressLng)
+        ? { lat: Number(body.addressLat), lng: Number(body.addressLng) }
+        : undefined;
+    delivery = await deliveryFee(oneLine(body.address, 300), coords);
+    total += delivery.fee;
+    if (delivery.durationMin != null) {
+      const etaMin = delivery.durationMin + PREP_MINUTES;
+      const when = new Date(Date.now() + etaMin * 60000).toLocaleTimeString(
+        "en-US",
+        { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" }
+      );
+      etaText = `~${etaMin} min (around ${when})`;
+    } else {
+      etaText = "the deli will confirm your delivery time";
+    }
+  }
+
   const body_lines = lines
     .map(
       (l) =>
@@ -143,17 +171,30 @@ export async function POST(req: NextRequest) {
     `  ${phone}${email ? ` · ${email}` : ""}`,
     ``,
     `FULFILLMENT`,
-    `  ${isDelivery ? "DELIVERY" : "Pickup — skyway counter, Suite #220"}`,
+    isDelivery ? `  DELIVERY` : `  Pickup — skyway counter, Suite #220`,
     isDelivery && body.address ? `  Address: ${multiLine(body.address, 300)}` : ``,
-    body.pickupTime ? `  Time: ${oneLine(body.pickupTime, 60)}` : ``,
+    isDelivery
+      ? `  Est. delivery: ${etaText}${delivery && delivery.miles != null ? ` · ${delivery.miles} mi` : ""}`
+      : body.pickupTime
+        ? `  Time: ${oneLine(body.pickupTime, 60)}`
+        : ``,
+    isDelivery && delivery && !delivery.calculated
+      ? `  (!) Couldn't auto-calc the delivery distance — verify the fee and time.`
+      : ``,
     ``,
     `ITEMS`,
     body_lines,
     ``,
     `  ------------------------------`,
-    `  SUBTOTAL:  ${money(total)}`,
     isDelivery
-      ? `  (Tax and any delivery fee added by the deli.)`
+      ? `  Items subtotal:  ${money(itemsSubtotal)}`
+      : `  SUBTOTAL:  ${money(itemsSubtotal)}`,
+    isDelivery && delivery
+      ? `  Delivery fee:    ${money(delivery.fee)}${delivery.calculated ? "" : " (estimate)"}`
+      : ``,
+    isDelivery ? `  ORDER TOTAL:     ${money(total)}` : ``,
+    isDelivery
+      ? `  (Tax applied by the deli.)`
       : `  (Tax applied at the register.)`,
     ``,
     body.notes ? `Order notes: ${multiLine(body.notes, 500)}` : ``,
@@ -176,6 +217,10 @@ export async function POST(req: NextRequest) {
     orderId,
     total,
     mode,
+    deliveryFee: delivery?.fee ?? 0,
+    deliveryMiles: delivery?.miles,
+    deliveryEta: etaText || undefined,
+    deliveryCalculated: delivery?.calculated ?? true,
     emailSent: emailRes.sent,
   });
 }
