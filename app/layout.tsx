@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.thebrothersdeli.com"),
   title: "The Brothers Deli | Corned Beef & Pastrami Since 1935 · Minneapolis",
   description:
-    "A family-run Minneapolis deli since 1935. Corned beef, pastrami, matzo ball soup, and popovers on the downtown skyway. Order pickup, dine in, or cater your office.",
+    "A family-run Minneapolis deli since 1935. Pastrami, corned beef, turkey and roasted sirloin piled high, with matzo ball soup and popovers on the downtown skyway. Order pickup, dine in, or cater your office.",
   openGraph: {
     title: "The Brothers Deli | Corned Beef & Pastrami Since 1935",
     description:
@@ -26,7 +26,7 @@ export default function RootLayout({
     "@type": "Restaurant",
     name: "The Brothers Deli",
     description:
-      "A family-run Minneapolis deli since 1935 — corned beef, pastrami, matzo ball soup, and popovers on the downtown skyway.",
+      "A family-run Minneapolis deli since 1935 — pastrami, corned beef, turkey and roasted sirloin, matzo ball soup, and popovers on the downtown skyway.",
     url: "https://www.thebrothersdeli.com",
     telephone: "+1-612-341-8007",
     email: "thedeli@thebrothersdeli.com",

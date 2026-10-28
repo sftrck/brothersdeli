@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendDeliEmail } from "@/lib/email";
-import { findCateringItem, CATERING_MIN_HEADCOUNT, NO_SECOND_SALAD } from "@/lib/catering";
+import { findCateringItem, CATERING_MIN_HEADCOUNT, NO_SECOND_SALAD, DELI_CHOICE } from "@/lib/catering";
 import { deliveryFee, type DeliveryQuote } from "@/lib/delivery";
 import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
 
@@ -92,6 +92,13 @@ export async function POST(req: NextRequest) {
       choice = it.chooses
         .filter((c) => headcount >= (c.minHeadcount ?? 0))
         .map((c) => {
+          if (c.multi) {
+            const picks = oneLine(raw?.choices?.[c.id], 1200)
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => c.options.includes(s));
+            return picks.length ? picks.join(", ") : DELI_CHOICE;
+          }
           const picked = oneLine(raw?.choices?.[c.id], 60);
           return c.options.includes(picked) ? picked : c.options[0];
         })

@@ -2,16 +2,27 @@
 // Prices from the live catering menu. Used by both the catering page and the
 // /api/catering route so the estimate is priced identically on the server.
 
+import { SANDWICH_NAMES, SALAD_NAMES } from "@/lib/menu";
+
 export type CateringChoice = {
   id: string;
   label: string;
   options: string[];
   // Only offered when the headcount is at least this (e.g. a 2nd salad at 20+).
   minHeadcount?: number;
+  // Pick several from `options` (checkbox list); empty = let the deli decide.
+  multi?: boolean;
 };
 
 // Sentinel option so an optional choice (e.g. the 2nd salad) can be left off.
 export const NO_SECOND_SALAD = "No second salad";
+
+// Multi-select trays: an empty selection means the deli assembles the tray.
+export const DELI_CHOICE = "Deli's choice";
+// What can go on each tray, kept in sync with the menu. Any sandwich or salad
+// can be made into a wrap, so the wrap tray offers both.
+export const SANDWICH_TRAY_CHOICES = SANDWICH_NAMES;
+export const WRAP_TRAY_CHOICES = [...SANDWICH_NAMES, ...SALAD_NAMES];
 export type CateringItem = {
   id: string;
   name: string;
@@ -94,9 +105,9 @@ export const CATERING: CateringGroup[] = [
     items: [
       { id: "salad-tray", name: "Salad Tray", desc: "Any of our salads with a side", perPerson: 14.99, chooses: [{ id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "bread", label: "Choose a side", options: SALAD_TRAY_BREAD }] },
       { id: "meat-cheese-tray", name: "Meat & Cheese Tray", desc: "Corned beef, roast beef, ham, turkey, cheeses, dills and bread — served with potato salad", perPerson: 14.99 },
-      { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "A variety of sandwiches with cheese, lettuce, tomatoes, condiments and kosher dill, plus a mini dessert. Served with two sides.", perPerson: 17.99, chooses: [{ id: "side1", label: "First side", options: BUDGET_SIDES }, { id: "side2", label: "Second side", options: BUDGET_SIDES }] },
-      { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese and dills", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }] },
-      { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Variety of wrap sandwiches", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }] },
+      { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "A variety of sandwiches with cheese, lettuce, tomatoes, condiments and kosher dill, plus a mini dessert. Served with two sides.", perPerson: 17.99, chooses: [{ id: "side1", label: "First side", options: BUDGET_SIDES }, { id: "side2", label: "Second side", options: BUDGET_SIDES }, { id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: SANDWICH_TRAY_CHOICES, multi: true }] },
+      { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese and dills", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }, { id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: SANDWICH_TRAY_CHOICES, multi: true }] },
+      { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Any sandwich or salad made into a wrap — your pick or the deli's.", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }, { id: "sandwiches", label: "Pick your wraps (or let the deli decide)", options: WRAP_TRAY_CHOICES, multi: true }] },
       { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },

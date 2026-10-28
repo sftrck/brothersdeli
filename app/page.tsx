@@ -16,9 +16,9 @@ export default function Home() {
               Seventy Years of the <em>Perfect</em> Sandwich.
             </h1>
             <p className="lead">
-              Corned beef and pastrami piled high, soups with a warm popover,
-              and the same family recipes since Mike&apos;s Cafe opened its
-              doors. Order ahead — it&apos;s ready when you are.
+              Turkey, roasted sirloin, pastrami and corned beef piled high,
+              soups with a warm popover, and the same family recipes since 1935.
+              Order ahead — it&apos;s ready when you are.
             </p>
             <div className="cta-row">
               <Link className="btn btn-primary" href="/order">
@@ -48,17 +48,24 @@ export default function Home() {
 
       <div className="strip">
         <div className="wrap">
-          <span>Corned Beef</span>
-          <span className="dot">·</span>
           <span>Pastrami</span>
           <span className="dot">·</span>
-          <span>Matzo Ball Soup</span>
+          <span>Corned Beef</span>
           <span className="dot">·</span>
-          <span>Popovers</span>
+          <span>Turkey</span>
+          <span className="dot">·</span>
+          <span>Roasted Sirloin</span>
           <span className="dot">·</span>
           <span>Catering</span>
         </div>
       </div>
+
+      <section className="quote-band">
+        <div className="wrap">
+          <p>&ldquo;They come all the way from New York for our pastrami.&rdquo;</p>
+          <span>— a longtime customer</span>
+        </div>
+      </section>
 
       <section className="block story" id="story">
         <div className="wrap">
@@ -95,91 +102,86 @@ export default function Home() {
         <div className="wrap">
           <div className="head">
             <div>
-              <p className="eyebrow">From the counter</p>
-              <h2>Deli Classics, Done Right</h2>
+              <p className="eyebrow">Customer favorites</p>
+              <h2>Our Top Ten</h2>
             </div>
             <p>
-              Nine kinds of sandwich, big salads, soups by the bowl, and the
-              healthy Fit&nbsp;500 line — all made to order.
+              The ten most-ordered picks from our 75 kinds of sandwiches, big
+              salads and soups — all made to order.
             </p>
           </div>
-          <div className="menu-grid">
-            <div className="card">
-              <div className="ph">
-                <img src="/images/corned-beef.jpg" alt="Corned beef sandwich on rye" />
+          <ol className="top-ten">
+            <li>
+              <span className="tt-num">01</span>
+              <div>
+                <h3>Reuben</h3>
+                <p>Corned beef, Swiss, sauerkraut and Russian dressing on grilled rye.</p>
               </div>
-              <div className="body">
-                <span className="kicker">The Original</span>
-                <h3>Corned Beef on Rye</h3>
-                <p>
-                  Slow-cured Black Angus corned beef, piled high with a pickle on
-                  the side.
-                </p>
+            </li>
+            <li>
+              <span className="tt-num">02</span>
+              <div>
+                <h3>The Pepe</h3>
+                <p>Pastrami smoked then steamed three hours with melted pepper cheese.</p>
               </div>
-            </div>
-            <div className="card">
-              <div className="ph">
-                <img src="/images/turkey-avocado.jpg" alt="Turkey and avocado sandwich" />
+            </li>
+            <li>
+              <span className="tt-num">03</span>
+              <div>
+                <h3>The Hots Pepe</h3>
+                <p>Pastrami, pepper cheese, onion and hot sauce on grilled rye.</p>
               </div>
-              <div className="body">
-                <span className="kicker">Fresh Roasted</span>
-                <h3>Turkey &amp; Avocado</h3>
-                <p>
-                  House-roasted turkey, avocado, and greens on your choice of
-                  bread.
-                </p>
+            </li>
+            <li>
+              <span className="tt-num">04</span>
+              <div>
+                <h3>Turkey Club</h3>
+                <p>Grilled turkey, applewood bacon, tomatoes, Swiss and Russian dressing.</p>
               </div>
-            </div>
-            <div className="card">
-              <div className="ph">
-                <img src="/images/matzo-ball-soup.jpg" alt="Matzo ball soup" />
+            </li>
+            <li>
+              <span className="tt-num">05</span>
+              <div>
+                <h3>Messy Bessy</h3>
+                <p>Pastrami, corned beef, cole slaw, Swiss, tomatoes and thousand island.</p>
               </div>
-              <div className="body">
-                <span className="kicker">Simmered Slow</span>
-                <h3>Matzo Ball Soup</h3>
-                <p>
-                  Golden chicken broth and a tender matzo ball — comes with a
-                  popover.
-                </p>
+            </li>
+            <li>
+              <span className="tt-num">06</span>
+              <div>
+                <h3>White Bean Chili</h3>
+                <p>House white bean chicken chili by the bowl, with a warm popover.</p>
               </div>
-            </div>
-            <div className="card">
-              <div className="ph">
-                <img src="/images/peach-goat-salad.jpg" alt="Peach and goat cheese salad" />
+            </li>
+            <li>
+              <span className="tt-num">07</span>
+              <div>
+                <h3>Strawberry Salad</h3>
+                <p>Grilled chicken, strawberries, almonds and romaine in creamy poppyseed.</p>
               </div>
-              <div className="body">
-                <span className="kicker">Big Salads</span>
-                <h3>Peach &amp; Goat Cheese</h3>
-                <p>
-                  Seasonal greens, fruit, and goat cheese — every salad comes
-                  with a popover.
-                </p>
+            </li>
+            <li>
+              <span className="tt-num">08</span>
+              <div>
+                <h3>Cobb Salad</h3>
+                <p>Bacon, chicken, tomatoes, blue cheese, avocado and egg over greens.</p>
               </div>
-            </div>
-            <div className="card">
-              <div className="ph">
-                <img src="/images/popovers.jpg" alt="Warm popover with honey butter" />
+            </li>
+            <li>
+              <span className="tt-num">09</span>
+              <div>
+                <h3>Garlic Steak</h3>
+                <p>Steak, red onions, apple-smoked bacon and cheddar on garlic ciabatta.</p>
               </div>
-              <div className="body">
-                <span className="kicker">Baked to Order</span>
-                <h3>Warm Popovers</h3>
-                <p>Pulled hot from the oven — one comes with every soup and salad.</p>
+            </li>
+            <li>
+              <span className="tt-num">10</span>
+              <div>
+                <h3>Pesto Chicken</h3>
+                <p>Roasted chicken breast, tomatoes and pesto mayo on ciabatta.</p>
               </div>
-            </div>
-            <div className="card">
-              <div className="ph">
-                <img src="/images/cookies-bars.jpg" alt="Cookies and pecan bars" />
-              </div>
-              <div className="body">
-                <span className="kicker">From the Bakery</span>
-                <h3>Cookies &amp; Bars</h3>
-                <p>
-                  Fresh-baked cookies, brownies, and pecan bars to finish the
-                  meal.
-                </p>
-              </div>
-            </div>
-          </div>
+            </li>
+          </ol>
           <div style={{ textAlign: "center", marginTop: 44 }}>
             <Link className="btn btn-ghost" href="/order">
               See the Full Menu &rarr;
@@ -197,9 +199,9 @@ export default function Home() {
             <p className="eyebrow">Catering for 8 or more</p>
             <h2>Feeding the Whole Office?</h2>
             <p>
-              The same corned beef, pastrami, and popovers — set up for the whole
-              room. Just give us 24 hours&apos; notice and we&apos;ll handle the
-              rest.
+              The same turkey, roasted sirloin, pastrami and corned beef — set up
+              for the whole room. Just give us 24 hours&apos; notice and
+              we&apos;ll handle the rest.
             </p>
             <ul>
               <li>Breakfast &amp; bagel trays</li>

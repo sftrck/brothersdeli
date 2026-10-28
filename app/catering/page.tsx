@@ -8,6 +8,7 @@ import {
   CATERING,
   CATERING_MIN_HEADCOUNT,
   NO_SECOND_SALAD,
+  DELI_CHOICE,
   findCateringItem,
   type CateringChoice,
 } from "@/lib/catering";
@@ -112,7 +113,21 @@ export default function CateringPage() {
   }
 
   function choiceVal(itemId: string, c: CateringChoice) {
-    return choices[`${itemId}:${c.id}`] || c.options[0];
+    const stored = choices[`${itemId}:${c.id}`];
+    if (c.multi) return stored || DELI_CHOICE;
+    return stored || c.options[0];
+  }
+  function multiSelected(itemId: string, c: CateringChoice): string[] {
+    const raw = choices[`${itemId}:${c.id}`];
+    return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  }
+  function toggleMulti(itemId: string, c: CateringChoice, option: string) {
+    const key = `${itemId}:${c.id}`;
+    const cur = multiSelected(itemId, c);
+    const next = cur.includes(option)
+      ? cur.filter((o) => o !== option)
+      : [...cur, option];
+    setChoices((prev) => ({ ...prev, [key]: next.join(", ") }));
   }
   function choiceSummary(
     it: NonNullable<ReturnType<typeof findCateringItem>>
@@ -278,26 +293,49 @@ export default function CateringPage() {
                         {sel &&
                           it.chooses
                             ?.filter((c) => heads >= (c.minHeadcount ?? 0))
-                            .map((c) => (
-                            <div className="crow-choice" key={c.id}>
-                              <label>{c.label}</label>
-                              <select
-                                value={choices[`${it.id}:${c.id}`] || c.options[0]}
-                                onChange={(e) =>
-                                  setChoices((prev) => ({
-                                    ...prev,
-                                    [`${it.id}:${c.id}`]: e.target.value,
-                                  }))
-                                }
-                              >
-                                {c.options.map((o) => (
-                                  <option key={o} value={o}>
-                                    {o}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          ))}
+                            .map((c) =>
+                              c.multi ? (
+                                <div className="crow-choice crow-multi" key={c.id}>
+                                  <label>{c.label}</label>
+                                  <div className="multi-box">
+                                    {multiSelected(it.id, c).length === 0 && (
+                                      <p className="multi-hint">
+                                        None picked — the deli will choose a variety.
+                                      </p>
+                                    )}
+                                    {c.options.map((o) => (
+                                      <label className="multi-opt" key={o}>
+                                        <input
+                                          type="checkbox"
+                                          checked={multiSelected(it.id, c).includes(o)}
+                                          onChange={() => toggleMulti(it.id, c, o)}
+                                        />
+                                        <span>{o}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="crow-choice" key={c.id}>
+                                  <label>{c.label}</label>
+                                  <select
+                                    value={choices[`${it.id}:${c.id}`] || c.options[0]}
+                                    onChange={(e) =>
+                                      setChoices((prev) => ({
+                                        ...prev,
+                                        [`${it.id}:${c.id}`]: e.target.value,
+                                      }))
+                                    }
+                                  >
+                                    {c.options.map((o) => (
+                                      <option key={o} value={o}>
+                                        {o}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )
+                            )}
                       </div>
                     );
                   })}

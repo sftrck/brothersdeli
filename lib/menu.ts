@@ -93,6 +93,13 @@ const dinaMeat: MenuOption = {
   required: true,
   choices: [{ label: "Corned Beef" }, { label: "Pastrami" }],
 };
+// Salads come with a popover or cornbread.
+const saladSide: MenuOption = {
+  id: "side",
+  label: "Popover or cornbread",
+  required: true,
+  choices: [{ label: "Popover" }, { label: "Cornbread" }],
+};
 // Common bundles
 const breadAndCheese: MenuOption[] = [breadOption(), cheeseOption];
 
@@ -254,23 +261,23 @@ export const MENU: MenuCategory[] = [
   {
     id: "salads",
     name: "Salads",
-    note: "All salads are large and come with a popover. Add chicken $2.50, salmon $4.95.",
+    note: "All salads are large and come with a popover or cornbread. Add chicken $2.50, salmon $4.95.",
     items: [
-      { id: "caesar", name: "Caesar", desc: "Romaine mix, Parmesan cheese and croutons with homemade Caesar dressing.", price: 9.99, options: [proteinOption] },
-      { id: "greek-salad", name: "Greek Salad", desc: "Romaine mix, feta cheese, onions, banana peppers, croutons, black olives, cucumber, tomatoes with homemade Greek dressing.", price: 14.0, options: [proteinOption] },
-      { id: "cobb-salad", name: "Cobb Salad", desc: "Bacon, chicken, tomatoes, blue cheese, avocado, eggs, croutons over mixed greens.", price: 14.0 },
-      { id: "pams-strawberry-chicken", name: "Pam's Strawberry Chicken", desc: "Grilled chicken, strawberries, almonds, romaine, creamy poppyseed dressing.", price: 14.0 },
-      { id: "chopped-salad", name: "Chopped Salad", desc: "Gorgonzola, tomatoes, cucumbers, green onion, artichokes, romaine, balsamic.", price: 14.0, options: [proteinOption] },
-      { id: "moroccan-chicken", name: "Moroccan Chicken", desc: "Chicken, romaine, dates, avocado, almonds, beets, egg, carrots, cranberries, peppers, white balsamic.", price: 14.0 },
-      { id: "thai-crunch", name: "Thai Crunch", desc: "Napa & red cabbage, cucumbers, peppers, edamame, carrots, peanuts, wontons, chicken, spicy peanut.", price: 15.99 },
-      { id: "chinese-chicken-salad", name: "Chinese Chicken Salad", desc: "Crispy noodles, almonds, red peppers, green onions, mandarin oranges, chicken, wontons and romaine mix with homemade sweet and sour dressing.", price: 14.0 },
-      { id: "trudys-cranberry-apple", name: "Trudy's Cranberry Apple", desc: "Apples, cranberries, candied walnuts, parmesan, romaine, lemon poppyseed.", price: 14.0, options: [proteinOption] },
-      { id: "atlantic-salmon-salad", name: "Atlantic Salmon", desc: "Marinated salmon, fresh greens, chopped vegetables, balsamic vinaigrette.", price: 15.99 },
-      { id: "southwest-buffalo-salad", name: "Southwest Buffalo Salad", desc: "Romaine, buffalo chicken, tortilla strips, corn, black beans, tomatoes, cucumbers, provolone.", price: 14.0 },
-      { id: "house-salad", name: "House Salad", desc: "Bacon, chicken, tomatoes, red onions, provolone, eggs, romaine, maple mustard vinaigrette.", price: 14.0 },
-      { id: "fruited-spinach", name: "Fruited Spinach", desc: "Spinach, pineapple, grapes, raisins, apples, strawberries, walnuts, orange yogurt dressing.", price: 14.0, options: [proteinOption] },
-      { id: "pear-chicken-salad", name: "Pear Chicken Salad", desc: "Goat cheese, strawberries, blackberries, blueberries, walnuts, pomegranates, romaine, kale, honey club.", price: 14.0 },
-      { id: "mediterranean-chicken-quinoa", name: "Mediterranean Chicken Quinoa", desc: "Chicken, quinoa, olives, feta, artichokes, garbanzos, tomatoes, onions, cucumbers, chipotle dressing.", price: 14.0 },
+      { id: "caesar", name: "Caesar", desc: "Romaine mix, Parmesan cheese and croutons with homemade Caesar dressing.", price: 9.99, options: [proteinOption, saladSide] },
+      { id: "greek-salad", name: "Greek Salad", desc: "Romaine mix, feta cheese, onions, banana peppers, croutons, black olives, cucumber, tomatoes with homemade Greek dressing.", price: 14.0, options: [proteinOption, saladSide] },
+      { id: "cobb-salad", name: "Cobb Salad", desc: "Bacon, chicken, tomatoes, blue cheese, avocado, eggs, croutons over mixed greens.", price: 14.0, options: [saladSide] },
+      { id: "pams-strawberry-chicken", name: "Pam's Strawberry Chicken", desc: "Grilled chicken, strawberries, almonds, romaine, creamy poppyseed dressing.", price: 14.0, options: [saladSide] },
+      { id: "chopped-salad", name: "Chopped Salad", desc: "Gorgonzola, tomatoes, cucumbers, green onion, artichokes, romaine, balsamic.", price: 14.0, options: [proteinOption, saladSide] },
+      { id: "moroccan-chicken", name: "Moroccan Chicken", desc: "Chicken, romaine, dates, avocado, almonds, beets, egg, carrots, cranberries, peppers, white balsamic.", price: 14.0, options: [saladSide] },
+      { id: "thai-crunch", name: "Thai Crunch", desc: "Napa & red cabbage, cucumbers, peppers, edamame, carrots, peanuts, wontons, chicken, spicy peanut.", price: 15.99, options: [saladSide] },
+      { id: "chinese-chicken-salad", name: "Chinese Chicken Salad", desc: "Crispy noodles, almonds, red peppers, green onions, mandarin oranges, chicken, wontons and romaine mix with homemade sweet and sour dressing.", price: 14.0, options: [saladSide] },
+      { id: "trudys-cranberry-apple", name: "Trudy's Cranberry Apple", desc: "Apples, cranberries, candied walnuts, parmesan, romaine, lemon poppyseed.", price: 14.0, options: [proteinOption, saladSide] },
+      { id: "atlantic-salmon-salad", name: "Atlantic Salmon", desc: "Marinated salmon, fresh greens, chopped vegetables, balsamic vinaigrette.", price: 15.99, options: [saladSide] },
+      { id: "southwest-buffalo-salad", name: "Southwest Buffalo Salad", desc: "Romaine, buffalo chicken, tortilla strips, corn, black beans, tomatoes, cucumbers, provolone.", price: 14.0, options: [saladSide] },
+      { id: "house-salad", name: "House Salad", desc: "Bacon, chicken, tomatoes, red onions, provolone, eggs, romaine, maple mustard vinaigrette.", price: 14.0, options: [saladSide] },
+      { id: "fruited-spinach", name: "Fruited Spinach", desc: "Spinach, pineapple, grapes, raisins, apples, strawberries, walnuts, orange yogurt dressing.", price: 14.0, options: [proteinOption, saladSide] },
+      { id: "pear-chicken-salad", name: "Pear Chicken Salad", desc: "Goat cheese, strawberries, blackberries, blueberries, walnuts, pomegranates, romaine, kale, honey club.", price: 14.0, options: [saladSide] },
+      { id: "mediterranean-chicken-quinoa", name: "Mediterranean Chicken Quinoa", desc: "Chicken, quinoa, olives, feta, artichokes, garbanzos, tomatoes, onions, cucumbers, chipotle dressing.", price: 14.0, options: [saladSide] },
     ],
   },
   {
@@ -335,7 +342,7 @@ export const MENU: MenuCategory[] = [
     id: "drinks",
     name: "Drinks",
     items: [
-      { id: "fountain-drink", name: "Fountain Drink", price: 2.25 },
+      { id: "fountain-drink", name: "Fountain Drink", price: 2.5 },
       { id: "can-soda", name: "Can of Soda", price: 2.95 },
       { id: "cream-soda", name: "Cream Soda", price: 3.25 },
       { id: "diet-cream-soda", name: "Diet Cream Soda", price: 3.25 },
@@ -348,6 +355,12 @@ export const MENU: MenuCategory[] = [
     ],
   },
 ];
+
+// Sandwich and salad names, for catering tray selection (choose what's on the tray).
+export const SANDWICH_NAMES: string[] =
+  MENU.find((c) => c.id === "sandwiches")?.items.map((i) => i.name) ?? [];
+export const SALAD_NAMES: string[] =
+  MENU.find((c) => c.id === "salads")?.items.map((i) => i.name) ?? [];
 
 export function findItem(id: string): MenuItem | undefined {
   for (const cat of MENU) {
