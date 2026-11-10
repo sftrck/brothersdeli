@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendDeliEmail } from "@/lib/email";
-import { findCateringItem, CATERING_MIN_HEADCOUNT, NO_SECOND_SALAD, DELI_CHOICE } from "@/lib/catering";
+import { findCateringItem, CATERING_MIN_HEADCOUNT, NO_SECOND_SALAD, VARIETY } from "@/lib/catering";
 import { deliveryFee, type DeliveryQuote } from "@/lib/delivery";
 import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
 
 const MAX_HEADCOUNT = 1000;
 const GF_PER_PERSON = 2;
 
-type ItemIn = { id: string; choices?: Record<string, string> };
+type ItemIn = { id: string; choices?: Record<string, string>; names?: string };
 type CateringIn = {
   name: string;
   email: string;
@@ -82,7 +82,12 @@ export async function POST(req: NextRequest) {
   // Re-price from the canonical menu; validate each tray's choice (cap + de-dupe).
   const rawItems = (Array.isArray(body.items) ? body.items : []).slice(0, 100);
   const seen = new Set<string>();
-  const chosen: { name: string; perPerson: number; choice?: string }[] = [];
+  const chosen: {
+    name: string;
+    perPerson: number;
+    choice?: string;
+    names?: string;
+  }[] = [];
   for (const raw of rawItems) {
     const it = findCateringItem(String(raw?.id ?? ""));
     if (!it || seen.has(it.id)) continue;
@@ -92,12 +97,30 @@ export async function POST(req: NextRequest) {
       choice = it.chooses
         .filter((c) => headcount >= (c.minHeadcount ?? 0))
         .map((c) => {
+          if (c.qty) {
+            const parts = oneLine(raw?.choices?.[c.id], 600)
+              .split(";")
+              .map((p) => p.trim())
+              .map((p) => {
+                const eq = p.lastIndexOf("=");
+                if (eq < 0) return "";
+                const label = p.slice(0, eq).trim();
+                const count = parseInt(p.slice(eq + 1), 10);
+                return c.options.includes(label) &&
+                  Number.isFinite(count) &&
+                  count > 0
+                  ? `${label} ×${Math.min(999, count)}`
+                  : "";
+              })
+              .filter(Boolean);
+            return parts.length ? parts.join(", ") : "none selected";
+          }
           if (c.multi) {
             const picks = oneLine(raw?.choices?.[c.id], 1200)
               .split(",")
               .map((s) => s.trim())
               .filter((s) => c.options.includes(s));
-            return picks.length ? picks.join(", ") : DELI_CHOICE;
+            return picks.length ? picks.join(", ") : VARIETY;
           }
           const picked = oneLine(raw?.choices?.[c.id], 60);
           return c.options.includes(picked) ? picked : c.options[0];
@@ -105,7 +128,19 @@ export async function POST(req: NextRequest) {
         .filter((v) => v !== NO_SECOND_SALAD)
         .join(", ");
     }
-    chosen.push({ name: it.name, perPerson: it.perPerson, choice });
+    const names = it.names
+      ? multiLine(raw?.names, 600)
+          .split("\n")
+          .map((n) => n.trim())
+          .filter(Boolean)
+          .join(", ")
+      : "";
+    chosen.push({
+      name: it.name,
+      perPerson: it.perPerson,
+      choice,
+      names: names || undefined,
+    });
   }
   if (chosen.length === 0) {
     return NextResponse.json(
@@ -134,7 +169,9 @@ export async function POST(req: NextRequest) {
   const lines: { name: string; detail?: string; amount: number }[] = chosen.map(
     (it) => ({
       name: it.name + (it.choice ? ` — ${it.choice}` : ""),
-      detail: `${money(it.perPerson)}/pp × ${headcount}`,
+      detail:
+        `${money(it.perPerson)}/pp × ${headcount}` +
+        (it.names ? ` · Names: ${it.names}` : ""),
       amount: it.perPerson * headcount,
     })
   );
@@ -158,7 +195,8 @@ export async function POST(req: NextRequest) {
     .map(
       (it) =>
         `  ${it.name}${it.choice ? ` — ${it.choice}` : ""}\n` +
-        `      ${money(it.perPerson)}/pp × ${headcount} = ${money(it.perPerson * headcount)}`
+        `      ${money(it.perPerson)}/pp × ${headcount} = ${money(it.perPerson * headcount)}` +
+        (it.names ? `\n      Names: ${it.names}` : "")
     )
     .join("\n");
 

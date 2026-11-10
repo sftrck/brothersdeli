@@ -325,7 +325,10 @@ export const MENU: MenuCategory[] = [
         id: "cookie",
         name: "Cookie",
         desc: "Fresh-baked — choose your flavor.",
-        price: 4.99,
+        variants: [
+          { label: "Big", price: 4.99 },
+          { label: "Small", price: 2.25 },
+        ],
         options: [
           {
             id: "flavor",
@@ -335,7 +338,22 @@ export const MENU: MenuCategory[] = [
           },
         ],
       },
-      { id: "blackout-brownie", name: "Blackout Brownie", price: 5.95 },
+      {
+        id: "brownie",
+        name: "Brownie",
+        variants: [
+          { label: "Big", price: 7.95 },
+          { label: "Small", price: 3.95 },
+        ],
+      },
+      {
+        id: "bar",
+        name: "Bar",
+        variants: [
+          { label: "Big", price: 7.95 },
+          { label: "Small", price: 3.95 },
+        ],
+      },
     ],
   },
   {

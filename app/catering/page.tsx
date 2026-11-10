@@ -8,7 +8,7 @@ import {
   CATERING,
   CATERING_MIN_HEADCOUNT,
   NO_SECOND_SALAD,
-  DELI_CHOICE,
+  VARIETY,
   findCateringItem,
   type CateringChoice,
 } from "@/lib/catering";
@@ -21,6 +21,7 @@ export default function CateringPage() {
   const [headcount, setHeadcount] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [choices, setChoices] = useState<Record<string, string>>({});
+  const [boxNames, setBoxNames] = useState<Record<string, string>>({});
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
   const [veg, setVeg] = useState(false);
@@ -50,6 +51,7 @@ export default function CateringPage() {
         if (typeof s.headcount === "string") setHeadcount(s.headcount);
         if (Array.isArray(s.selected)) setSelected(new Set(s.selected));
         if (s.choices && typeof s.choices === "object") setChoices(s.choices);
+        if (s.boxNames && typeof s.boxNames === "object") setBoxNames(s.boxNames);
         if (s.fulfillment === "delivery") setFulfillment("delivery");
         if (typeof s.address === "string") setAddress(s.address);
         if (s.veg) setVeg(true);
@@ -73,6 +75,7 @@ export default function CateringPage() {
           headcount,
           selected: Array.from(selected),
           choices,
+          boxNames,
           fulfillment,
           address,
           veg,
@@ -85,7 +88,7 @@ export default function CateringPage() {
     } catch {
       /* ignore */
     }
-  }, [headcount, selected, choices, fulfillment, address, veg, vegCount, gf, gfCount, utensils, loaded]);
+  }, [headcount, selected, choices, boxNames, fulfillment, address, veg, vegCount, gf, gfCount, utensils, loaded]);
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
   const gfNum = gf ? Math.max(0, Math.floor(Number(gfCount) || 0)) : 0;
@@ -114,12 +117,60 @@ export default function CateringPage() {
 
   function choiceVal(itemId: string, c: CateringChoice) {
     const stored = choices[`${itemId}:${c.id}`];
-    if (c.multi) return stored || DELI_CHOICE;
+    if (c.qty) return qtySummary(itemId, c) || "—";
+    if (c.multi) {
+      const picks = multiSelected(itemId, c);
+      return picks.length ? picks.join(", ") : VARIETY;
+    }
     return stored || c.options[0];
   }
+  // Quantity choices (e.g. Budget Box Lunch) store "Label=count;Label=count".
+  function qtyMap(itemId: string, c: CateringChoice): Record<string, number> {
+    const raw = choices[`${itemId}:${c.id}`] || "";
+    const map: Record<string, number> = {};
+    for (const pair of raw.split(";")) {
+      const eq = pair.lastIndexOf("=");
+      if (eq < 0) continue;
+      const label = pair.slice(0, eq).trim();
+      const n = parseInt(pair.slice(eq + 1), 10);
+      if (c.options.includes(label) && Number.isFinite(n) && n > 0) map[label] = n;
+    }
+    return map;
+  }
+  function setQty(itemId: string, c: CateringChoice, option: string, n: number) {
+    const map = qtyMap(itemId, c);
+    if (n > 0) map[option] = n;
+    else delete map[option];
+    const serialized = c.options
+      .filter((o) => map[o] > 0)
+      .map((o) => `${o}=${map[o]}`)
+      .join(";");
+    setChoices((prev) => ({ ...prev, [`${itemId}:${c.id}`]: serialized }));
+  }
+  function qtySummary(itemId: string, c: CateringChoice): string {
+    const map = qtyMap(itemId, c);
+    return c.options
+      .filter((o) => map[o] > 0)
+      .map((o) => `${o} ×${map[o]}`)
+      .join(", ");
+  }
   function multiSelected(itemId: string, c: CateringChoice): string[] {
-    const raw = choices[`${itemId}:${c.id}`];
-    return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    const raw = choices[`${itemId}:${c.id}`] || "";
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => c.options.includes(s));
+  }
+  // Variety mode (the default): deli assembles the tray; specifics are off.
+  function isVariety(itemId: string, c: CateringChoice): boolean {
+    const stored = choices[`${itemId}:${c.id}`];
+    return stored == null || stored === VARIETY;
+  }
+  function setVariety(itemId: string, c: CateringChoice, on: boolean) {
+    setChoices((prev) => ({
+      ...prev,
+      [`${itemId}:${c.id}`]: on ? VARIETY : "",
+    }));
   }
   function toggleMulti(itemId: string, c: CateringChoice, option: string) {
     const key = `${itemId}:${c.id}`;
@@ -127,7 +178,8 @@ export default function CateringPage() {
     const next = cur.includes(option)
       ? cur.filter((o) => o !== option)
       : [...cur, option];
-    setChoices((prev) => ({ ...prev, [key]: next.join(", ") }));
+    // Dropping the last specific pick falls back to Variety.
+    setChoices((prev) => ({ ...prev, [key]: next.length ? next.join(", ") : VARIETY }));
   }
   function choiceSummary(
     it: NonNullable<ReturnType<typeof findCateringItem>>
@@ -176,9 +228,10 @@ export default function CateringPage() {
               ? Object.fromEntries(
                   it.chooses
                     .filter((c) => heads >= (c.minHeadcount ?? 0))
-                    .map((c) => [c.id, choiceVal(it.id, c)])
+                    .map((c) => [c.id, choices[`${it.id}:${c.id}`] ?? ""])
                 )
               : undefined,
+            names: it.names ? boxNames[it.id] : undefined,
           })),
           fulfillment,
           address,
@@ -294,19 +347,93 @@ export default function CateringPage() {
                           it.chooses
                             ?.filter((c) => heads >= (c.minHeadcount ?? 0))
                             .map((c) =>
-                              c.multi ? (
+                              c.qty ? (
+                                <div className="crow-choice crow-qty" key={c.id}>
+                                  <label>{c.label}</label>
+                                  <div className="qty-box">
+                                    {c.options.map((o) => {
+                                      const n = qtyMap(it.id, c)[o] || 0;
+                                      return (
+                                        <div className="qty-row" key={o}>
+                                          <span className="qty-name">{o}</span>
+                                          <div className="qty-step">
+                                            <button
+                                              type="button"
+                                              aria-label={`Fewer ${o}`}
+                                              onClick={() =>
+                                                setQty(it.id, c, o, Math.max(0, n - 1))
+                                              }
+                                            >
+                                              −
+                                            </button>
+                                            <input
+                                              inputMode="numeric"
+                                              value={n}
+                                              onChange={(e) =>
+                                                setQty(
+                                                  it.id,
+                                                  c,
+                                                  o,
+                                                  Math.max(
+                                                    0,
+                                                    Math.min(
+                                                      999,
+                                                      parseInt(
+                                                        e.target.value.replace(/[^0-9]/g, ""),
+                                                        10
+                                                      ) || 0
+                                                    )
+                                                  )
+                                                )
+                                              }
+                                            />
+                                            <button
+                                              type="button"
+                                              aria-label={`More ${o}`}
+                                              onClick={() =>
+                                                setQty(it.id, c, o, Math.min(999, n + 1))
+                                              }
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    <p className="qty-total">
+                                      Total sandwiches:{" "}
+                                      {Object.values(qtyMap(it.id, c)).reduce(
+                                        (a, b) => a + b,
+                                        0
+                                      )}
+                                      {heads > 0 ? ` of ${heads}` : ""}
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : c.multi ? (
                                 <div className="crow-choice crow-multi" key={c.id}>
                                   <label>{c.label}</label>
                                   <div className="multi-box">
-                                    {multiSelected(it.id, c).length === 0 && (
-                                      <p className="multi-hint">
-                                        None picked — the deli will choose a variety.
-                                      </p>
-                                    )}
+                                    <label className="multi-opt multi-variety">
+                                      <input
+                                        type="checkbox"
+                                        checked={isVariety(it.id, c)}
+                                        onChange={(e) =>
+                                          setVariety(it.id, c, e.target.checked)
+                                        }
+                                      />
+                                      <span>
+                                        Variety — let the deli put together a selection
+                                      </span>
+                                    </label>
                                     {c.options.map((o) => (
-                                      <label className="multi-opt" key={o}>
+                                      <label
+                                        className={`multi-opt${isVariety(it.id, c) ? " disabled" : ""}`}
+                                        key={o}
+                                      >
                                         <input
                                           type="checkbox"
+                                          disabled={isVariety(it.id, c)}
                                           checked={multiSelected(it.id, c).includes(o)}
                                           onChange={() => toggleMulti(it.id, c, o)}
                                         />
@@ -336,6 +463,21 @@ export default function CateringPage() {
                                 </div>
                               )
                             )}
+                        {sel && it.names && (
+                          <div className="crow-choice crow-names">
+                            <label>Names for each box (optional)</label>
+                            <textarea
+                              value={boxNames[it.id] || ""}
+                              onChange={(e) =>
+                                setBoxNames((prev) => ({
+                                  ...prev,
+                                  [it.id]: e.target.value,
+                                }))
+                              }
+                              placeholder="One name per line — we'll label each box."
+                            />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
