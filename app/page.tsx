@@ -233,7 +233,7 @@ export default function Home() {
               <br />
               Minneapolis, MN 55402
               <br />
-              <a href="tel:16123418007">(612) 341-8007</a> ·{" "}
+              <a href="tel:16123148007">(612) 314-8007</a> ·{" "}
               <a href="mailto:thedeli@thebrothersdeli.com">
                 thedeli@thebrothersdeli.com
               </a>
@@ -303,8 +303,8 @@ export default function Home() {
               flexWrap: "wrap",
             }}
           >
-            <a className="btn btn-ghost" href="tel:16123418007">
-              Call (612) 341-8007
+            <a className="btn btn-ghost" href="tel:16123148007">
+              Call (612) 314-8007
             </a>
             <Link className="btn btn-light" href="/order">
               Order Now

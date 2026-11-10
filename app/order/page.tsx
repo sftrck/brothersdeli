@@ -282,7 +282,7 @@ export default function OrderPage() {
       }
       router.push("/checkout");
     } catch {
-      setError("Network error. Please call (612) 341-8007 to order.");
+      setError("Network error. Please call (612) 314-8007 to order.");
     } finally {
       setSubmitting(false);
     }

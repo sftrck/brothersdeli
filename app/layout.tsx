@@ -28,7 +28,7 @@ export default function RootLayout({
     description:
       "A family-run Minneapolis deli since 1935 — pastrami, corned beef, turkey and roasted sirloin, matzo ball soup, and popovers on the downtown skyway.",
     url: "https://www.thebrothersdeli.com",
-    telephone: "+1-612-341-8007",
+    telephone: "+1-612-314-8007",
     email: "thedeli@thebrothersdeli.com",
     servesCuisine: ["Deli", "Jewish", "Sandwiches", "American"],
     priceRange: "$$",

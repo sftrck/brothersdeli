@@ -29,7 +29,7 @@ export default function SiteFooter() {
               <br />
               Minneapolis, MN 55402
             </p>
-            <a href="tel:16123418007">(612) 341-8007</a>
+            <a href="tel:16123148007">(612) 314-8007</a>
             <a href="mailto:thedeli@thebrothersdeli.com">
               thedeli@thebrothersdeli.com
             </a>

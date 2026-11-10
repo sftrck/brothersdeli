@@ -58,7 +58,7 @@ export default function VisitPage() {
                   Minneapolis, MN 55402
                   <br />
                   <br />
-                  <a href="tel:16123418007">(612) 341-8007</a>
+                  <a href="tel:16123148007">(612) 314-8007</a>
                   <br />
                   <a href="mailto:thedeli@thebrothersdeli.com">
                     thedeli@thebrothersdeli.com

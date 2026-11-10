@@ -81,7 +81,7 @@ export default function CheckoutPage() {
         /* ignore */
       }
     } catch {
-      setError("Network error. Please call (612) 341-8007 to finish your order.");
+      setError("Network error. Please call (612) 314-8007 to finish your order.");
     } finally {
       setPaying(false);
     }
@@ -137,7 +137,7 @@ export default function CheckoutPage() {
               </Link>
             </p>
             <p style={{ fontSize: ".82rem", color: "var(--ink-soft)", marginTop: 14 }}>
-              Trouble paying? Call <a href="tel:16123418007">(612) 341-8007</a>.
+              Trouble paying? Call <a href="tel:16123148007">(612) 314-8007</a>.
             </p>
           </div>
         ) : pending ? (
@@ -152,7 +152,7 @@ export default function CheckoutPage() {
             <p>
               Card payment is being connected — the deli will call to confirm the
               details and take payment. For anything urgent, call{" "}
-              <a href="tel:16123418007">(612) 341-8007</a>.
+              <a href="tel:16123148007">(612) 314-8007</a>.
             </p>
             <p style={{ marginTop: 18 }}>
               <Link className="btn btn-ghost" href="/">

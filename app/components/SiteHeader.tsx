@@ -7,7 +7,7 @@ export default function SiteHeader() {
         <div className="wrap">
           Downtown Minneapolis Skyway &nbsp;·&nbsp;{" "}
           <b>Open Mon–Fri for breakfast &amp; lunch</b> &nbsp;·&nbsp; (612)
-          341-8007
+          314-8007
         </div>
       </div>
 
@@ -25,8 +25,8 @@ export default function SiteHeader() {
             <Link href="/visit">Visit</Link>
           </nav>
           <div className="header-cta">
-            <a className="phone" href="tel:16123418007">
-              (612) 341-8007<span>Call the deli</span>
+            <a className="phone" href="tel:16123148007">
+              (612) 314-8007<span>Call the deli</span>
             </a>
             <Link className="btn btn-primary" href="/order">
               Order Now
