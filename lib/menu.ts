@@ -322,13 +322,10 @@ export const MENU: MenuCategory[] = [
     name: "Desserts",
     items: [
       {
-        id: "cookie",
-        name: "Cookie",
+        id: "big-cookie",
+        name: "Big Cookie",
         desc: "Fresh-baked — choose your flavor.",
-        variants: [
-          { label: "Big", price: 4.99 },
-          { label: "Small", price: 2.25 },
-        ],
+        price: 4.99,
         options: [
           {
             id: "flavor",
@@ -339,21 +336,23 @@ export const MENU: MenuCategory[] = [
         ],
       },
       {
-        id: "brownie",
-        name: "Brownie",
-        variants: [
-          { label: "Big", price: 7.95 },
-          { label: "Small", price: 3.95 },
+        id: "small-cookie",
+        name: "Small Cookie",
+        desc: "A big cookie cut in half — choose your flavor.",
+        price: 2.25,
+        options: [
+          {
+            id: "flavor",
+            label: "Choose your cookie",
+            required: true,
+            choices: COOKIE_FLAVORS,
+          },
         ],
       },
-      {
-        id: "bar",
-        name: "Bar",
-        variants: [
-          { label: "Big", price: 7.95 },
-          { label: "Small", price: 3.95 },
-        ],
-      },
+      { id: "big-brownie", name: "Big Brownie", price: 7.95 },
+      { id: "small-brownie", name: "Small Brownie", desc: "A big brownie cut in half.", price: 3.95 },
+      { id: "big-bar", name: "Big Bar", price: 7.95 },
+      { id: "small-bar", name: "Small Bar", desc: "A big bar cut in half.", price: 3.95 },
     ],
   },
   {

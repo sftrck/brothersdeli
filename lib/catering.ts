@@ -2,6 +2,8 @@
 // Prices from the live catering menu. Used by both the catering page and the
 // /api/catering route so the estimate is priced identically on the server.
 
+import { SANDWICH_NAMES } from "@/lib/menu";
+
 export type CateringChoice = {
   id: string;
   label: string;
@@ -40,10 +42,15 @@ export const BUDGET_BOX_SANDWICHES = [
   "Corned Beef",
   "Pastrami",
 ];
-// Deluxe Box Lunch — the budget list plus Turkey with Avocado (below Turkey).
-export const DELUXE_BOX_SANDWICHES = BUDGET_BOX_SANDWICHES.flatMap((s) =>
+// Deluxe Box Lunch / Sandwich & Mini trays — the budget quick-picks (plus Turkey
+// with Avocado), then every sandwich on the menu so any one can be chosen.
+const DELUXE_QUICK_PICKS = BUDGET_BOX_SANDWICHES.flatMap((s) =>
   s === "Turkey" ? [s, "Turkey with Avocado"] : [s]
 );
+export const DELUXE_BOX_SANDWICHES = [
+  ...DELUXE_QUICK_PICKS,
+  ...SANDWICH_NAMES.filter((n) => !DELUXE_QUICK_PICKS.includes(n)),
+];
 export type CateringItem = {
   id: string;
   name: string;
@@ -119,7 +126,7 @@ export const CATERING: CateringGroup[] = [
     items: [
       { id: "budget-box-lunch", name: "Budget Box Lunch", desc: "Deli sandwich, chips and a sweet", perPerson: 16.99, names: true, chooses: [{ id: "sandwiches", label: "Sandwiches — pick a quantity of each", options: BUDGET_BOX_SANDWICHES, qty: true }] },
       { id: "deluxe-box-lunch", name: "Deluxe Box Lunch", desc: "Any sandwich, apple, potato salad or chips, and a sweet", perPerson: 17.99, names: true, chooses: [{ id: "sandwiches", label: "Sandwiches — pick a quantity of each", options: DELUXE_BOX_SANDWICHES, qty: true }] },
-      { id: "salad-box-lunch", name: "Salad Box Lunch", desc: "Any salad with a popover, apple and a sweet", perPerson: 17.99, names: true, chooses: [{ id: "salad", label: "Choose a salad", options: CATERING_SALADS }] },
+      { id: "salad-box-lunch", name: "Salad Box Lunch", desc: "Any salad with a popover, apple and a sweet", perPerson: 17.99, names: true, chooses: [{ id: "salads", label: "Salads — pick a quantity of each", options: CATERING_SALADS, qty: true }] },
     ],
   },
   {
