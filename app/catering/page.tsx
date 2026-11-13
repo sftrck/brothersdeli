@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import AddressAutocomplete, {
+  type PickedAddress,
+} from "../components/AddressAutocomplete";
 import {
   CATERING,
   CATERING_MIN_HEADCOUNT,
@@ -24,6 +27,7 @@ export default function CateringPage() {
   const [boxNames, setBoxNames] = useState<Record<string, string>>({});
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
+  const [addrCoords, setAddrCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [veg, setVeg] = useState(false);
   const [vegCount, setVegCount] = useState("");
   const [gf, setGf] = useState(false);
@@ -54,6 +58,7 @@ export default function CateringPage() {
         if (s.boxNames && typeof s.boxNames === "object") setBoxNames(s.boxNames);
         if (s.fulfillment === "delivery") setFulfillment("delivery");
         if (typeof s.address === "string") setAddress(s.address);
+        if (s.addrCoords && typeof s.addrCoords === "object") setAddrCoords(s.addrCoords);
         if (s.veg) setVeg(true);
         if (typeof s.vegCount === "string") setVegCount(s.vegCount);
         if (s.gf) setGf(true);
@@ -78,6 +83,7 @@ export default function CateringPage() {
           boxNames,
           fulfillment,
           address,
+          addrCoords,
           veg,
           vegCount,
           gf,
@@ -88,7 +94,7 @@ export default function CateringPage() {
     } catch {
       /* ignore */
     }
-  }, [headcount, selected, choices, boxNames, fulfillment, address, veg, vegCount, gf, gfCount, utensils, loaded]);
+  }, [headcount, selected, choices, boxNames, fulfillment, address, addrCoords, veg, vegCount, gf, gfCount, utensils, loaded]);
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
   const gfNum = gf ? Math.max(0, Math.floor(Number(gfCount) || 0)) : 0;
@@ -216,8 +222,8 @@ export default function CateringPage() {
       setError("Pick at least one item.");
       return;
     }
-    if (fulfillment === "delivery" && !address.trim()) {
-      setError("Please add a delivery address.");
+    if (fulfillment === "delivery" && (!address.trim() || !addrCoords)) {
+      setError("Please choose your delivery address from the suggestions.");
       return;
     }
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
@@ -250,6 +256,8 @@ export default function CateringPage() {
           })),
           fulfillment,
           address,
+          addressLat: addrCoords?.lat,
+          addressLng: addrCoords?.lng,
           vegCount: veg ? Math.max(0, Math.floor(Number(vegCount) || 0)) : 0,
           gfCount: gfNum,
           utensils,
@@ -591,11 +599,23 @@ export default function CateringPage() {
               {fulfillment === "delivery" && (
                 <div className="field">
                   <label>Delivery address *</label>
-                  <textarea
+                  <AddressAutocomplete
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Street address, suite/floor, company, city…"
+                    onType={(text) => {
+                      setAddress(text);
+                      setAddrCoords(null);
+                    }}
+                    onPick={(a: PickedAddress) => {
+                      setAddress(a.label);
+                      setAddrCoords({ lat: a.lat, lng: a.lng });
+                    }}
+                    placeholder="Start typing your street address…"
                   />
+                  <p className="eta-note">
+                    {addrCoords
+                      ? "Address confirmed — we'll quote your delivery fee by distance at checkout."
+                      : "Pick your address from the list so we can quote delivery."}
+                  </p>
                 </div>
               )}
 

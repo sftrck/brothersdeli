@@ -18,6 +18,8 @@ type CateringIn = {
   items?: ItemIn[];
   fulfillment?: "pickup" | "delivery";
   address?: string;
+  addressLat?: number;
+  addressLng?: number;
   vegCount?: number;
   gfCount?: number;
   utensils?: boolean;
@@ -170,7 +172,11 @@ export async function POST(req: NextRequest) {
 
   let delivery: DeliveryQuote = { fee: 0, calculated: true };
   if (isDelivery) {
-    delivery = await deliveryFee(address, undefined, 30);
+    const coords =
+      Number.isFinite(body.addressLat) && Number.isFinite(body.addressLng)
+        ? { lat: Number(body.addressLat), lng: Number(body.addressLng) }
+        : undefined;
+    delivery = await deliveryFee(address, coords, 30);
   }
   const total = foodTotal + gfUpcharge + delivery.fee;
 

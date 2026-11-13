@@ -31,6 +31,69 @@ function money(n: number) {
   return `$${n.toFixed(2)}`;
 }
 
+// Pickup times, in the deli's local (Chicago) hours. Minutes since midnight.
+const DELI_HOURS: Record<number, [number, number] | null> = {
+  0: null, // Sun — closed
+  1: [7 * 60 + 30, 13 * 60 + 30], // Mon 7:30–1:30
+  2: [7 * 60 + 30, 13 * 60 + 30],
+  3: [7 * 60 + 30, 13 * 60 + 30],
+  4: [7 * 60 + 30, 13 * 60 + 30],
+  5: [10 * 60 + 30, 13 * 60], // Fri 10:30–1:00
+  6: null, // Sat — closed
+};
+const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function chicagoNow(now: Date): { wd: number; min: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  let hour = parseInt(get("hour"), 10);
+  if (hour === 24) hour = 0; // midnight can report as 24 with hour12:false
+  return {
+    wd: WEEKDAY.indexOf(get("weekday")),
+    min: hour * 60 + parseInt(get("minute"), 10),
+  };
+}
+
+function fmtTime(min: number): string {
+  let h = Math.floor(min / 60);
+  const m = min % 60;
+  const ap = h < 12 ? "AM" : "PM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m.toString().padStart(2, "0")} ${ap}`;
+}
+
+// 15-minute pickup slots, earliest = now + 15 min, within open hours. Falls to
+// the next open day when today's slots are gone; labels future days (e.g. "Mon").
+function buildPickupSlots(now: Date): string[] {
+  const { wd, min } = chicagoNow(now);
+  const earliest = Math.ceil((min + 15) / 15) * 15;
+  for (let off = 0; off < 7; off++) {
+    const day = (wd + off) % 7;
+    const hrs = DELI_HOURS[day];
+    if (!hrs) continue;
+    const [open, close] = hrs;
+    let start = off === 0 ? Math.max(open, earliest) : open;
+    start = Math.ceil(start / 15) * 15;
+    if (start > close) continue;
+    const slots: string[] = [];
+    if (off === 0 && min >= open && min < close) {
+      slots.push("As soon as possible (~15 min)");
+    }
+    for (let t = start; t <= close; t += 15) {
+      slots.push(off === 0 ? fmtTime(t) : `${WEEKDAY[day]} ${fmtTime(t)}`);
+    }
+    return slots;
+  }
+  return [];
+}
+
 let LINE_UID = 0;
 
 export default function OrderPage() {
@@ -47,6 +110,20 @@ export default function OrderPage() {
     notes: "",
   });
   const [addrCoords, setAddrCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Pickup-time slots are computed after mount (client clock) to avoid an SSR
+  // hydration mismatch.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const pickupSlots = useMemo(
+    () => (mounted ? buildPickupSlots(new Date()) : []),
+    [mounted]
+  );
+  // Default the pickup time to the earliest slot once slots are known.
+  useEffect(() => {
+    if (mounted && pickupSlots.length) {
+      setForm((f) => (f.pickupTime ? f : { ...f, pickupTime: pickupSlots[0] }));
+    }
+  }, [mounted, pickupSlots]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -455,13 +532,22 @@ export default function OrderPage() {
                   {fulfillment !== "delivery" && (
                     <div>
                       <label>Pickup time</label>
-                      <input
+                      <select
                         value={form.pickupTime}
                         onChange={(e) =>
                           setForm((f) => ({ ...f, pickupTime: e.target.value }))
                         }
-                        placeholder="ASAP / 12:15"
-                      />
+                      >
+                        {!mounted && <option value="">Loading times…</option>}
+                        {mounted && pickupSlots.length === 0 && (
+                          <option value="">We&apos;ll call to confirm a time</option>
+                        )}
+                        {pickupSlots.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
                 </div>
