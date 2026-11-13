@@ -51,11 +51,17 @@ export const DELUXE_BOX_SANDWICHES = [
   ...DELUXE_QUICK_PICKS,
   ...SANDWICH_NAMES.filter((n) => !DELUXE_QUICK_PICKS.includes(n)),
 ];
+// A size option with its own price (e.g. big vs. a half). When an item has
+// sizes, the selected size's price replaces perPerson in the headcount math.
+export type CateringSize = { label: string; price: number };
 export type CateringItem = {
   id: string;
   name: string;
   desc?: string;
+  // Per-person price (× headcount). For sized items this is the default size.
   perPerson: number;
+  // Two sizes/prices like the main menu (big vs. cut in half).
+  sizes?: CateringSize[];
   // Some trays require one or more choices (which salad, which side[s]).
   chooses?: CateringChoice[];
   // Box lunches: let the customer label each box with a name.
@@ -141,8 +147,9 @@ export const CATERING: CateringGroup[] = [
       { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }, { id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
-      { id: "cookies-tray", name: "Cookies", perPerson: 4.45, chooses: [{ id: "size", label: "Cookie size", options: ["Big cookies", "Small cookies (cut in half)"] }] },
-      { id: "brownies-bars-tray", name: "Brownies & Bars", perPerson: 7.95, chooses: [{ id: "size", label: "Size", options: ["Big", "Small (cut in half)"] }] },
+      { id: "cookies-tray", name: "Cookies", perPerson: 4.99, sizes: [{ label: "Big cookie", price: 4.99 }, { label: "Small cookie (cut in half)", price: 2.25 }] },
+      { id: "brownies-tray", name: "Brownies", perPerson: 7.95, sizes: [{ label: "Big brownie", price: 7.95 }, { label: "Small brownie (cut in half)", price: 3.95 }] },
+      { id: "bars-tray", name: "Bars", perPerson: 7.95, sizes: [{ label: "Big bar", price: 7.95 }, { label: "Small bar (cut in half)", price: 3.95 }] },
     ],
   },
 ];

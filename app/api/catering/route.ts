@@ -7,7 +7,7 @@ import { oneLine, multiLine, isEmail, rateLimited } from "@/lib/security";
 const MAX_HEADCOUNT = 1000;
 const GF_PER_PERSON = 2;
 
-type ItemIn = { id: string; choices?: Record<string, string>; names?: string };
+type ItemIn = { id: string; choices?: Record<string, string>; names?: string; size?: string };
 type CateringIn = {
   name: string;
   email: string;
@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
     perPerson: number;
     choice?: string;
     names?: string;
+    size?: string;
   }[] = [];
   for (const raw of rawItems) {
     const it = findCateringItem(String(raw?.id ?? ""));
@@ -135,11 +136,21 @@ export async function POST(req: NextRequest) {
           .filter(Boolean)
           .join(", ")
       : "";
+    // Sized items (desserts): the picked size sets the per-person price.
+    let perPerson = it.perPerson;
+    let size: string | undefined;
+    if (it.sizes && it.sizes.length) {
+      const picked = oneLine(raw?.size, 60);
+      const match = it.sizes.find((s) => s.label === picked) ?? it.sizes[0];
+      perPerson = match.price;
+      size = match.label;
+    }
     chosen.push({
       name: it.name,
-      perPerson: it.perPerson,
+      perPerson,
       choice,
       names: names || undefined,
+      size,
     });
   }
   if (chosen.length === 0) {
@@ -168,7 +179,10 @@ export async function POST(req: NextRequest) {
   // ---- Checkout display lines ----
   const lines: { name: string; detail?: string; amount: number }[] = chosen.map(
     (it) => ({
-      name: it.name + (it.choice ? ` — ${it.choice}` : ""),
+      name:
+        it.name +
+        (it.size ? ` — ${it.size}` : "") +
+        (it.choice ? ` — ${it.choice}` : ""),
       detail:
         `${money(it.perPerson)}/pp × ${headcount}` +
         (it.names ? ` · Names: ${it.names}` : ""),
@@ -194,7 +208,7 @@ export async function POST(req: NextRequest) {
   const itemLines = chosen
     .map(
       (it) =>
-        `  ${it.name}${it.choice ? ` — ${it.choice}` : ""}\n` +
+        `  ${it.name}${it.size ? ` — ${it.size}` : ""}${it.choice ? ` — ${it.choice}` : ""}\n` +
         `      ${money(it.perPerson)}/pp × ${headcount} = ${money(it.perPerson * headcount)}` +
         (it.names ? `\n      Names: ${it.names}` : "")
     )

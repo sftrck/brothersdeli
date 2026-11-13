@@ -101,7 +101,21 @@ export default function CateringPage() {
     [selected]
   );
 
-  const perPersonSum = selectedItems.reduce((s, it) => s + it.perPerson, 0);
+  // Price per person for an item — the selected size's price when it has sizes.
+  function itemPrice(it: NonNullable<ReturnType<typeof findCateringItem>>) {
+    if (it.sizes && it.sizes.length) {
+      const sel = choices[`${it.id}:size`];
+      return (it.sizes.find((s) => s.label === sel) ?? it.sizes[0]).price;
+    }
+    return it.perPerson;
+  }
+  function sizeLabel(it: NonNullable<ReturnType<typeof findCateringItem>>) {
+    if (!it.sizes || !it.sizes.length) return "";
+    const sel = choices[`${it.id}:size`];
+    return (it.sizes.find((s) => s.label === sel) ?? it.sizes[0]).label;
+  }
+
+  const perPersonSum = selectedItems.reduce((s, it) => s + itemPrice(it), 0);
   const foodTotal = heads * perPersonSum;
   const gfUpcharge = gfNum * 2;
   const estimateTotal = foodTotal + gfUpcharge;
@@ -232,6 +246,7 @@ export default function CateringPage() {
                 )
               : undefined,
             names: it.names ? boxNames[it.id] : undefined,
+            size: it.sizes ? choices[`${it.id}:size`] || it.sizes[0].label : undefined,
           })),
           fulfillment,
           address,
@@ -330,19 +345,39 @@ export default function CateringPage() {
                           <div className="cp">
                             {heads > 0 ? (
                               <>
-                                {money(it.perPerson * heads)}
+                                {money(itemPrice(it) * heads)}
                                 <small>
-                                  {money(it.perPerson)}/pp × {heads}
+                                  {money(itemPrice(it))}/pp × {heads}
                                 </small>
                               </>
                             ) : (
                               <>
-                                {money(it.perPerson)}
+                                {money(itemPrice(it))}
                                 <small>per person</small>
                               </>
                             )}
                           </div>
                         </label>
+                        {sel && it.sizes && (
+                          <div className="crow-choice">
+                            <label>Size</label>
+                            <select
+                              value={choices[`${it.id}:size`] || it.sizes[0].label}
+                              onChange={(e) =>
+                                setChoices((prev) => ({
+                                  ...prev,
+                                  [`${it.id}:size`]: e.target.value,
+                                }))
+                              }
+                            >
+                              {it.sizes.map((s) => (
+                                <option key={s.label} value={s.label}>
+                                  {s.label} — {money(s.price)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                         {sel &&
                           it.chooses
                             ?.filter((c) => heads >= (c.minHeadcount ?? 0))
@@ -507,10 +542,11 @@ export default function CateringPage() {
                     <div className="est-line" key={it.id}>
                       <span>
                         {it.name}
+                        {sizeLabel(it) ? ` — ${sizeLabel(it)}` : ""}
                         {choiceSummary(it) ? ` — ${choiceSummary(it)}` : ""}
-                        <span className="pp"> · {money(it.perPerson)}/pp</span>
+                        <span className="pp"> · {money(itemPrice(it))}/pp</span>
                       </span>
-                      <span>{heads > 0 ? money(it.perPerson * heads) : "—"}</span>
+                      <span>{heads > 0 ? money(itemPrice(it) * heads) : "—"}</span>
                     </div>
                   ))}
                   {gfUpcharge > 0 && (
