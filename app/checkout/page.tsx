@@ -200,7 +200,8 @@ export default function CheckoutPage() {
               <span>{money(order.total)}</span>
             </div>
             <p className="co-note">
-              Tax and any delivery not included — confirmed by the deli.
+              Total shown is before sales tax. Tax is added at payment — your
+              card receipt shows the final total, including tax.
             </p>
 
             {error && <div className="form-err">{error}</div>}
