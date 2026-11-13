@@ -190,6 +190,9 @@ export default function CheckoutPage() {
   // iframe; verify server-side, then show our confirmation + fire the emails.
   async function finishPayment() {
     if (!session || !order) return;
+    // North needs a moment after payment before the session status is
+    // queryable, so give it a head start before we verify.
+    await new Promise((r) => setTimeout(r, 3500));
     try {
       const res = await fetch("/api/complete", {
         method: "POST",

@@ -133,52 +133,63 @@ export async function getSessionStatus(sessionToken: string): Promise<{
   const key = apiKey();
   if (!key) throw new Error("North credentials are not configured.");
 
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 30_000);
-  let res: Response;
-  try {
-    res = await fetch(`${NORTH_BASE}/api/sessions/status`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        SessionToken: sessionToken,
-        CheckoutId: checkoutId(),
-        ProfileId: profileId(),
-        "Accept-Language": "en",
-        "User-Agent": "The Brothers Deli",
-      },
-      signal: ctrl.signal,
-    });
-  } finally {
-    clearTimeout(t);
-  }
-
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`North status HTTP ${res.status}: ${text.slice(0, 300)}`);
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    parsed = undefined;
-  }
-  const obj = (parsed ?? {}) as Record<string, unknown>;
-  const status = String(obj.status ?? "").trim();
-  const approved = status.toLowerCase() === "approved";
-
-  // Best-effort: pull the charged total (incl. tax) for the receipt if present.
-  let amount: number | undefined;
-  const bodyObj = (obj.body ?? obj) as Record<string, unknown>;
-  for (const field of ["amount", "totalAmount", "authAmount", "AUTH_AMOUNT"]) {
-    const v = bodyObj?.[field];
-    const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
-    if (Number.isFinite(n) && n > 0) {
-      amount = n;
-      break;
+  const doFetch = async () => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20_000);
+    try {
+      const res = await fetch(`${NORTH_BASE}/api/sessions/status`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          SessionToken: sessionToken,
+          CheckoutId: checkoutId(),
+          ProfileId: profileId(),
+          "Accept-Language": "en",
+          "User-Agent": "The Brothers Deli",
+        },
+        signal: ctrl.signal,
+      });
+      return { ok: res.ok, httpStatus: res.status, text: await res.text() };
+    } finally {
+      clearTimeout(t);
     }
-  }
+  };
 
-  return { approved, status, amount, body: parsed };
+  // The session status can take a few seconds to be queryable after payment,
+  // so retry until we see a final (Approved/Declined) result.
+  let last = { ok: false, httpStatus: 0, text: "" };
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 1200));
+    try {
+      last = await doFetch();
+    } catch (e) {
+      last = { ok: false, httpStatus: 0, text: e instanceof Error ? e.message : "error" };
+      continue;
+    }
+    if (!last.ok) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(last.text);
+    } catch {
+      parsed = undefined;
+    }
+    const obj = (parsed ?? {}) as Record<string, unknown>;
+    const status = String(obj.status ?? "").trim();
+    const low = status.toLowerCase();
+    if (low !== "approved" && low !== "declined") continue; // still pending
+    let amount: number | undefined;
+    const bodyObj = (obj.body ?? obj) as Record<string, unknown>;
+    for (const field of ["amount", "totalAmount", "authAmount", "AUTH_AMOUNT"]) {
+      const v = bodyObj?.[field];
+      const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
+      if (Number.isFinite(n) && n > 0) {
+        amount = n;
+        break;
+      }
+    }
+    return { approved: low === "approved", status, amount, body: parsed };
+  }
+  throw new Error(
+    `North status not final after retries: HTTP ${last.httpStatus}: ${String(last.text).slice(0, 200)}`
+  );
 }
