@@ -25,6 +25,8 @@ type NorthCheckout = {
   submit?: () => Promise<unknown>;
   // Form mode: fires when the customer completes payment inside the iframe.
   onPaymentComplete?: (cb: (data: unknown) => void) => void;
+  // Reports the checkout's rendered height so we can size the frame exactly.
+  onResize?: (cb: (height: number) => void) => (() => void) | void;
 };
 
 function money(n: number) {
@@ -97,6 +99,14 @@ export default function CheckoutPage() {
         if (typeof w.checkout.onPaymentComplete === "function") {
           w.checkout.onPaymentComplete(() => {
             void finishPayment();
+          });
+        }
+        // Size the frame to the form's real height (no inner scroll) — works on
+        // desktop and mobile since North reports the reflowed height.
+        if (typeof w.checkout.onResize === "function") {
+          w.checkout.onResize((h: number) => {
+            const el = document.getElementById("north-fields");
+            if (el && h > 0) el.style.height = `${Math.ceil(h)}px`;
           });
         }
         await w.checkout.mount(session.token, "north-fields");

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { paymentMode, createCheckoutSession } from "@/lib/payment";
+import { embeddedEnabled, createCheckoutSession } from "@/lib/payment";
 import { oneLine, rateLimited } from "@/lib/security";
 
 type PayIn = {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Bad JSON" }, { status: 400 });
   }
 
-  if (paymentMode() !== "hosted") {
+  if (!embeddedEnabled()) {
     return NextResponse.json({ ok: true, configured: false });
   }
 

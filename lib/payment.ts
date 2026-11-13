@@ -41,15 +41,14 @@ function northEnv() {
 }
 
 export function paymentConfigured(): boolean {
-  if (!(apiKey() && checkoutId() && profileId())) return false;
-  // Safety: sandbox credentials must never drive the real production site — a
-  // real customer would get a card form that cannot actually charge. On the
-  // production deployment, embedded checkout is only live when NORTH_ENV is
-  // "production"; otherwise we fall back to the interim payment link.
-  if (process.env.VERCEL_ENV === "production" && northEnv() !== "production") {
-    return false;
-  }
-  return true;
+  return Boolean(apiKey() && checkoutId() && profileId());
+}
+
+// Embedded checkout is shown whenever North is configured (per owner: open to
+// everyone). NOTE: with SANDBOX credentials this accepts test cards only — swap
+// to production credentials (real MID) before real customers pay.
+export function embeddedEnabled(): boolean {
+  return paymentConfigured();
 }
 
 // "hosted" = North embedded checkout is live here; else the interim link.
