@@ -351,6 +351,10 @@ export default function OrderPage() {
         total: data.total,
         lines,
         contact: { name: form.name, email: form.email, phone: form.phone },
+        pickupTime: fulfillment === "delivery" ? undefined : form.pickupTime,
+        address: fulfillment === "delivery" ? form.address : undefined,
+        deliveryEta: fulfillment === "delivery" ? data.deliveryEta : undefined,
+        deliveryNotes: fulfillment === "delivery" ? form.notes : undefined,
       };
       try {
         sessionStorage.setItem("bd_checkout", JSON.stringify(pending));

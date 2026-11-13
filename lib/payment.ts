@@ -6,81 +6,180 @@
 // site) while North iframes the actual card inputs, keeping raw card data off
 // our servers (low PCI scope).
 //
-// Flow (per North's Embedded Checkout — Fields Integration Guide):
+// Flow (North's Embedded Checkout — Fields Integration Guide):
 //   1. Server creates a short-lived checkout SESSION for the order amount
-//      (this file: createCheckoutSession), authenticating with the private API
-//      Key + Checkout ID + Profile ID.
-//   2. Browser loads North's checkout script, mounts the Fields into our
-//      /checkout page, and submits the card to North against that session.
-//   3. Server confirms approval via the session status endpoint
-//      (getSessionStatus) before we treat the order as paid.
+//      (createCheckoutSession), authenticating with the private API Key.
+//   2. Browser loads https://checkout.north.com/checkout.js, mounts the Fields,
+//      and submits the card to North against that session token.
+//   3. Server confirms approval via the session STATUS endpoint
+//      (getSessionStatus) before we treat the order as paid, then emails.
 //
-// OWNER-PROVIDED (set in Vercel env; from the North Embedded Checkout Designer):
+// OWNER-PROVIDED (Vercel env; from the North Embedded Checkout dashboard):
 //   NORTH_API_KEY      – private API Key (server-side only, never exposed)
 //   NORTH_CHECKOUT_ID  – Checkout ID
-//   NORTH_PROFILE_ID   – Profile ID (used by the browser script)
+//   NORTH_PROFILE_ID   – merchant Profile ID
 //   NORTH_ENV          – "sandbox" | "production"
 //
-// STATUS: credential names + flow are final. The exact session endpoint URL,
-// script URL, and Fields mount API are account-specific and come from the
-// merchant's Fields Integration Guide — the two `TODO(fields-guide)` spots
-// below get filled in (and tested in sandbox) once that guide + sandbox
-// credentials are available.
+// Sandbox and production use the SAME host; whether a charge actually funds is
+// determined by the checkout being published and the merchant assigned to it.
 
-export function paymentConfigured(): boolean {
-  return Boolean(
-    process.env.NORTH_API_KEY &&
-      process.env.NORTH_CHECKOUT_ID &&
-      process.env.NORTH_PROFILE_ID
-  );
+// Same host for sandbox and production (per North's Fields guide + sample).
+const NORTH_BASE = "https://checkout.north.com";
+export const NORTH_SCRIPT_URL = `${NORTH_BASE}/checkout.js`;
+
+function apiKey() {
+  return process.env.NORTH_API_KEY || "";
+}
+function checkoutId() {
+  return process.env.NORTH_CHECKOUT_ID || "";
+}
+function profileId() {
+  return process.env.NORTH_PROFILE_ID || "";
+}
+function northEnv() {
+  return (process.env.NORTH_ENV || "sandbox").toLowerCase();
 }
 
-// Kept for the existing /api/pay gate. "hosted" = North is configured.
+export function paymentConfigured(): boolean {
+  if (!(apiKey() && checkoutId() && profileId())) return false;
+  // Safety: sandbox credentials must never drive the real production site — a
+  // real customer would get a card form that cannot actually charge. On the
+  // production deployment, embedded checkout is only live when NORTH_ENV is
+  // "production"; otherwise we fall back to the interim payment link.
+  if (process.env.VERCEL_ENV === "production" && northEnv() !== "production") {
+    return false;
+  }
+  return true;
+}
+
+// "hosted" = North embedded checkout is live here; else the interim link.
 export type PaymentMode = "pay_at_pickup" | "hosted";
 export function paymentMode(): PaymentMode {
   return paymentConfigured() ? "hosted" : "pay_at_pickup";
 }
 
-function apiBase(): string {
-  // North sandbox vs production base URL. Confirm exact hosts from the
-  // Embedded Checkout Fields Integration Guide for this account.
-  return process.env.NORTH_ENV === "production"
-    ? "https://api.north.com" // TODO(fields-guide): confirm production base
-    : "https://api.sandbox.north.com"; // TODO(fields-guide): confirm sandbox base
-}
-
+// What the browser needs to mount North's Fields on /checkout.
 export type CheckoutSession = {
-  sessionId: string;
-  profileId: string;
+  token: string;
   scriptUrl: string;
   env: string;
 };
 
-// Creates a short-lived Embedded Checkout session the browser will attach the
-// Fields to. Returns the ids the client needs to mount and submit the form.
-export async function createCheckoutSession(_req: {
+type ProductIn = { name: string; price: number; quantity: number };
+
+// Step 2 — create a short-lived Embedded Checkout session for this order.
+export async function createCheckoutSession(req: {
   orderId: string;
-  amount: number; // USD
+  amount: number; // USD, pre-tax (North adds tax at payment)
   description: string;
+  products?: ProductIn[];
 }): Promise<CheckoutSession> {
-  // TODO(fields-guide): POST to North's create-session endpoint with the
-  // private API Key + Checkout ID + amount, and return { sessionId } from the
-  // response, plus the account's checkout script URL. Endpoint/auth/response
-  // shape are in the Fields Integration Guide; wire + test in sandbox first.
-  void apiBase();
-  throw new Error(
-    "North Embedded Checkout not yet wired — needs the account's Fields Integration Guide + sandbox credentials."
-  );
+  const key = apiKey();
+  if (!key || !checkoutId() || !profileId()) {
+    throw new Error("North credentials are not configured.");
+  }
+
+  const body = JSON.stringify({
+    checkoutId: checkoutId(),
+    profileId: profileId(),
+    amount: req.amount,
+    products:
+      req.products && req.products.length
+        ? req.products
+        : [{ name: req.description, price: req.amount, quantity: 1 }],
+  });
+
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30_000);
+  let res: Response;
+  try {
+    res = await fetch(`${NORTH_BASE}/api/sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+        "Accept-Language": "en",
+        "User-Agent": "The Brothers Deli",
+      },
+      body,
+      signal: ctrl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`North session HTTP ${res.status}: ${text.slice(0, 300)}`);
+  }
+  let token = "";
+  try {
+    token = (JSON.parse(text) as { token?: string }).token || "";
+  } catch {
+    /* fall through */
+  }
+  if (!token) throw new Error("North session response had no token.");
+
+  return { token, scriptUrl: NORTH_SCRIPT_URL, env: northEnv() };
 }
 
-// Confirms a session was approved before we mark the order paid.
-// On approval, the caller should send a "payment collected" email to the deli
-// (via lib/email sendDeliEmail) — the itemized order email already went out when
-// the order was placed, so this is the second, "money received" notification.
-export async function getSessionStatus(
-  _sessionId: string
-): Promise<{ approved: boolean; authCode?: string }> {
-  // TODO(fields-guide): GET the session status endpoint and map North's
-  // approval fields to { approved }.
-  throw new Error("North session status not yet wired.");
+// Step 6 — authoritative approval check (server-side only). On approval the
+// caller sends the customer receipt + an internal "payment collected" email.
+export async function getSessionStatus(sessionToken: string): Promise<{
+  approved: boolean;
+  status?: string;
+  amount?: number;
+  body?: unknown;
+}> {
+  const key = apiKey();
+  if (!key) throw new Error("North credentials are not configured.");
+
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 30_000);
+  let res: Response;
+  try {
+    res = await fetch(`${NORTH_BASE}/api/sessions/status`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        SessionToken: sessionToken,
+        CheckoutId: checkoutId(),
+        ProfileId: profileId(),
+        "Accept-Language": "en",
+        "User-Agent": "The Brothers Deli",
+      },
+      signal: ctrl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`North status HTTP ${res.status}: ${text.slice(0, 300)}`);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = undefined;
+  }
+  const obj = (parsed ?? {}) as Record<string, unknown>;
+  const status = String(obj.status ?? "").trim();
+  const approved = status.toLowerCase() === "approved";
+
+  // Best-effort: pull the charged total (incl. tax) for the receipt if present.
+  let amount: number | undefined;
+  const bodyObj = (obj.body ?? obj) as Record<string, unknown>;
+  for (const field of ["amount", "totalAmount", "authAmount", "AUTH_AMOUNT"]) {
+    const v = bodyObj?.[field];
+    const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
+    if (Number.isFinite(n) && n > 0) {
+      amount = n;
+      break;
+    }
+  }
+
+  return { approved, status, amount, body: parsed };
 }

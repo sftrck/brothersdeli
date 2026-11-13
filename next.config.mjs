@@ -5,14 +5,18 @@ const isProd = process.env.NODE_ENV === "production";
 // are allowed because Next.js injects them; there is no user-generated HTML on
 // the site, so the XSS surface is minimal. 'unsafe-eval' is dev-only (React
 // Refresh / webpack need it) and is dropped in production.
+// North Embedded Checkout loads checkout.js, mounts card fields in an iframe,
+// and talks to North's API — all under *.north.com. Allowed for the script,
+// the frame, and XHR/connections so the on-page card form works.
+const NORTH = "https://checkout.north.com https://*.north.com";
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} ${NORTH}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data:",
-  "frame-src https://www.google.com https://maps.google.com",
-  "connect-src 'self'",
+  `img-src 'self' data: ${NORTH}`,
+  `frame-src https://www.google.com https://maps.google.com ${NORTH}`,
+  `connect-src 'self' ${NORTH}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

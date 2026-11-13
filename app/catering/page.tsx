@@ -280,6 +280,9 @@ export default function CateringPage() {
         total: data.total,
         lines: data.lines,
         contact: { name: form.name, email: form.email, phone: form.phone },
+        address: fulfillment === "delivery" ? address : undefined,
+        deliveryNotes: fulfillment === "delivery" ? deliveryNotes : undefined,
+        eventDate: form.eventDate || undefined,
       };
       try {
         sessionStorage.setItem("bd_checkout", JSON.stringify(pending));

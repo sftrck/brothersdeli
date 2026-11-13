@@ -83,7 +83,7 @@ export function buildCustomerReceipt(o: CustomerReceipt): {
   if (isCatering && o.eventDate) fulfillment.push(`Event date: ${o.eventDate}`);
   if (isCatering && o.headcount) fulfillment.push(`Headcount: ${o.headcount}`);
   if (isDelivery) {
-    fulfillment.push(`Delivery to: ${o.address ?? ""}`);
+    fulfillment.push(o.address ? `Delivery to: ${o.address}` : "Delivery");
     if (o.deliveryEta) fulfillment.push(`Estimated arrival: ${o.deliveryEta}`);
     if (o.deliveryNotes) fulfillment.push(`Notes: ${o.deliveryNotes}`);
   } else {
