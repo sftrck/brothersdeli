@@ -22,7 +22,9 @@ type PendingOrder = {
 type NorthSession = { token: string; scriptUrl: string; env: string };
 type NorthCheckout = {
   mount: (token: string, elementId: string) => Promise<void>;
-  submit: () => Promise<unknown>;
+  submit?: () => Promise<unknown>;
+  // Form mode: fires when the customer completes payment inside the iframe.
+  onPaymentComplete?: (cb: (data: unknown) => void) => void;
 };
 
 function money(n: number) {
@@ -79,7 +81,9 @@ export default function CheckoutPage() {
     setLoaded(true);
   }, []);
 
-  // Mount North's card fields once we have a session.
+  // Mount North's embedded checkout once we have a session. Form mode renders
+  // the full checkout (Apple Pay / Google Pay / card) in the iframe and fires
+  // onPaymentComplete when the customer pays — we then verify server-side.
   useEffect(() => {
     if (!session) return;
     let cancelled = false;
@@ -90,19 +94,25 @@ export default function CheckoutPage() {
         if (!w.checkout || typeof w.checkout.mount !== "function") {
           throw new Error("checkout.js not ready");
         }
+        if (typeof w.checkout.onPaymentComplete === "function") {
+          w.checkout.onPaymentComplete(() => {
+            void finishPayment();
+          });
+        }
         await w.checkout.mount(session.token, "north-fields");
         if (!cancelled) setFieldsReady(true);
       } catch (e) {
         console.error("[checkout:mount]", e);
         if (!cancelled)
           setError(
-            "Couldn't load the secure card form. Please try again, or call (612) 314-8007."
+            "Couldn't load the secure checkout. Please refresh, or call (612) 314-8007."
           );
       }
     })();
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   function clearSaved() {
@@ -166,38 +176,30 @@ export default function CheckoutPage() {
     setLinkPay(true);
   }
 
-  // Step 2: submit the card, then verify + fulfill server-side.
-  async function submitCard() {
+  // Called by North's onPaymentComplete — the customer has paid inside the
+  // iframe; verify server-side, then show our confirmation + fire the emails.
+  async function finishPayment() {
     if (!session || !order) return;
-    setError("");
-    setPaying(true);
     try {
-      const w = window as unknown as { checkout?: NorthCheckout };
-      if (!w.checkout) throw new Error("checkout.js missing");
-      await w.checkout.submit();
       const res = await fetch("/api/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: session.token, order }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setError(data.error || "Payment couldn't be verified. Please call the deli.");
-        return;
-      }
-      if (data.approved) {
+      if (res.ok && data.ok && data.approved) {
         clearSaved();
         setApproved(true);
       } else {
         setError(
-          `Payment ${data.status || "was not approved"}. Please check your card details and try again.`
+          "We couldn't confirm your payment automatically. If your card was charged, call (612) 314-8007 and we'll take care of it."
         );
       }
     } catch (e) {
-      console.error("[checkout:submit]", e);
-      setError("Payment didn't go through. Please check your card details and try again.");
-    } finally {
-      setPaying(false);
+      console.error("[checkout:complete]", e);
+      setError(
+        "Payment confirmation didn't come through. If your card was charged, call (612) 314-8007."
+      );
     }
   }
 
@@ -212,7 +214,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="wrap" style={{ paddingBlock: 48, maxWidth: 640 }}>
+      <div className="wrap" style={{ paddingBlock: 48, maxWidth: session ? 880 : 640 }}>
         {!loaded ? null : approved ? (
           <div className="confirm" style={{ margin: 0 }}>
             <div className="tick">✓</div>
@@ -229,32 +231,29 @@ export default function CheckoutPage() {
             </p>
           </div>
         ) : session ? (
-          <div className="checkout-card">
-            <div className="co-head">
-              <span className="co-type">{order?.type} order</span>
-              <span className="co-id">{order?.orderId}</span>
+          <div className="co-embed">
+            <div className="co-embed-head">
+              <span className="co-type">
+                {order?.type} order · {order?.orderId}
+              </span>
+              <span className="co-embed-total">
+                Total before tax: {order ? money(order.total) : ""}
+              </span>
+              <Link
+                className="co-embed-edit"
+                href={order?.type === "Catering" ? "/catering" : "/order"}
+              >
+                ← Edit
+              </Link>
             </div>
-            <div className="co-total" style={{ marginTop: 12 }}>
-              <span>Total (before tax)</span>
-              <span>{order ? money(order.total) : ""}</span>
-            </div>
-            <div id="north-fields" style={{ marginTop: 18, minHeight: 60 }} />
             {!fieldsReady && !error && (
-              <p style={{ color: "var(--ink-soft)", fontSize: ".9rem" }}>
-                Loading secure card form…
-              </p>
+              <p className="co-loading">Loading secure checkout…</p>
             )}
+            <div id="north-fields" className="north-frame" />
             {error && <div className="form-err">{error}</div>}
-            <button
-              className="submit-btn"
-              onClick={submitCard}
-              disabled={paying || !fieldsReady}
-            >
-              {paying ? "Processing…" : `Pay ${order ? money(order.total) : ""} + tax`}
-            </button>
             <p className="co-secure">
-              Secure card payment powered by Payanywhere · North. Sales tax is
-              added at payment.
+              Secure payment powered by Payanywhere · North — Apple Pay, Google
+              Pay, and card accepted. Sales tax is added at payment.
             </p>
           </div>
         ) : linkPay ? (

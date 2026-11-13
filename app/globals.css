@@ -370,6 +370,19 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
 .co-total{display:flex;justify-content:space-between;font-family:var(--display);font-size:1.6rem;color:var(--green-deep);margin-top:14px;padding-top:14px;border-top:2px solid var(--line)}
 .co-note{font-size:.8rem;color:var(--ink-soft);margin-top:6px}
 .co-secure{text-align:center;font-size:.78rem;color:var(--ink-soft);margin-top:10px}
+/* Embedded North checkout (Form mode) — full, responsive frame */
+.co-embed{display:flex;flex-direction:column}
+.co-embed-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px}
+.co-embed-head .co-type{font-size:1.15rem}
+.co-embed-total{font-weight:800;color:var(--green-deep);margin-right:auto}
+.co-embed-edit{color:var(--burgundy);font-weight:700;font-size:.9rem}
+.co-loading{color:var(--ink-soft);font-size:.9rem;margin:0 0 10px}
+.north-frame{width:100%;height:calc(100vh - 210px);min-height:600px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.north-frame iframe{width:100%;height:100%;border:0;display:block}
+@media (max-width:640px){
+  .north-frame{height:calc(100vh - 170px);min-height:560px;border-radius:12px}
+  .co-embed-total{margin-right:0}
+}
 
 /* Closed state for the open/closed indicator dot */
 .hours .dot.closed{background:var(--ink-soft);box-shadow:0 0 0 4px rgba(91,82,74,.18)}
