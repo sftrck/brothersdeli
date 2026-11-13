@@ -47,6 +47,20 @@ nav.main a:hover::after{right:0}
 .header-cta{display:flex;align-items:center;gap:18px}
 .phone{font-weight:800;color:var(--green-deep);white-space:nowrap;font-size:1.02rem}
 .phone span{display:block;font-size:.6rem;letter-spacing:.14em;font-weight:700;color:var(--ink-soft);text-transform:uppercase}
+/* Mobile hamburger (hidden on desktop; shown ≤900px via media query below) */
+.nav-toggle{display:none;border:0;background:transparent;cursor:pointer;padding:8px;line-height:0;color:var(--green-deep)}
+.burger{display:block;width:26px;height:18px;position:relative}
+.burger i{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:currentColor;transition:transform .22s ease,opacity .18s ease,top .22s ease}
+.burger i:nth-child(1){top:0}
+.burger i:nth-child(2){top:7.5px}
+.burger i:nth-child(3){top:15px}
+.burger.open i:nth-child(1){top:7.5px;transform:rotate(45deg)}
+.burger.open i:nth-child(2){opacity:0}
+.burger.open i:nth-child(3){top:7.5px;transform:rotate(-45deg)}
+.mobile-nav{display:flex;flex-direction:column;border-top:1px solid var(--line);background:var(--paper)}
+.mobile-nav a{padding:15px 24px;font-weight:700;font-size:1.05rem;color:var(--green-deep);border-bottom:1px solid var(--line)}
+.mobile-nav a:last-child{border-bottom:0;color:var(--burgundy)}
+@media (min-width:901px){.mobile-nav{display:none}}
 
 /* Hero */
 .hero{padding:76px 0 72px}
@@ -163,6 +177,7 @@ footer p.tag{color:rgba(247,242,231,.62);margin-top:12px;max-width:34ch;font-siz
   .menu-grid{grid-template-columns:1fr 1fr}
   .foot-grid{grid-template-columns:1fr;gap:30px}
   nav.main,.phone{display:none}
+  .nav-toggle{display:inline-flex;align-items:center}
   .cater .photo{margin:0}
   .hero{padding:48px 0}
   section.block{padding:64px 0}
