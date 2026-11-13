@@ -28,6 +28,7 @@ export default function CateringPage() {
   const [fulfillment, setFulfillment] = useState<"pickup" | "delivery">("pickup");
   const [address, setAddress] = useState("");
   const [addrCoords, setAddrCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [deliveryNotes, setDeliveryNotes] = useState("");
   const [veg, setVeg] = useState(false);
   const [vegCount, setVegCount] = useState("");
   const [gf, setGf] = useState(false);
@@ -59,6 +60,7 @@ export default function CateringPage() {
         if (s.fulfillment === "delivery") setFulfillment("delivery");
         if (typeof s.address === "string") setAddress(s.address);
         if (s.addrCoords && typeof s.addrCoords === "object") setAddrCoords(s.addrCoords);
+        if (typeof s.deliveryNotes === "string") setDeliveryNotes(s.deliveryNotes);
         if (s.veg) setVeg(true);
         if (typeof s.vegCount === "string") setVegCount(s.vegCount);
         if (s.gf) setGf(true);
@@ -84,6 +86,7 @@ export default function CateringPage() {
           fulfillment,
           address,
           addrCoords,
+          deliveryNotes,
           veg,
           vegCount,
           gf,
@@ -94,7 +97,7 @@ export default function CateringPage() {
     } catch {
       /* ignore */
     }
-  }, [headcount, selected, choices, boxNames, fulfillment, address, addrCoords, veg, vegCount, gf, gfCount, utensils, loaded]);
+  }, [headcount, selected, choices, boxNames, fulfillment, address, addrCoords, deliveryNotes, veg, vegCount, gf, gfCount, utensils, loaded]);
 
   const heads = Math.max(0, Math.floor(Number(headcount) || 0));
   const gfNum = gf ? Math.max(0, Math.floor(Number(gfCount) || 0)) : 0;
@@ -258,6 +261,7 @@ export default function CateringPage() {
           address,
           addressLat: addrCoords?.lat,
           addressLng: addrCoords?.lng,
+          deliveryNotes: fulfillment === "delivery" ? deliveryNotes : "",
           vegCount: veg ? Math.max(0, Math.floor(Number(vegCount) || 0)) : 0,
           gfCount: gfNum,
           utensils,
@@ -616,6 +620,14 @@ export default function CateringPage() {
                       ? "Address confirmed — we'll quote your delivery fee by distance at checkout."
                       : "Pick your address from the list so we can quote delivery."}
                   </p>
+                  <label style={{ marginTop: 12 }}>
+                    Suite / floor, entry code, other delivery notes
+                  </label>
+                  <textarea
+                    value={deliveryNotes}
+                    onChange={(e) => setDeliveryNotes(e.target.value)}
+                    placeholder="Suite #, floor, buzzer/entry code, where to bring it…"
+                  />
                 </div>
               )}
 

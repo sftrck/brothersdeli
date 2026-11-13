@@ -20,6 +20,7 @@ type CateringIn = {
   address?: string;
   addressLat?: number;
   addressLng?: number;
+  deliveryNotes?: string;
   vegCount?: number;
   gfCount?: number;
   utensils?: boolean;
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
 
   const isDelivery = body.fulfillment === "delivery";
   const address = oneLine(body.address, 300);
+  const deliveryNotes = isDelivery ? multiLine(body.deliveryNotes, 400) : "";
   if (isDelivery && !address) {
     return NextResponse.json(
       { ok: false, error: "A delivery address is required." },
@@ -233,6 +235,7 @@ export async function POST(req: NextRequest) {
     `  Headcount: ${headcount}`,
     `  Fulfillment: ${isDelivery ? `DELIVERY to ${address}` : "Pickup — skyway counter, Suite #220"}`,
     isDelivery && delivery.miles != null ? `  Distance: ${delivery.miles} mi` : ``,
+    isDelivery && deliveryNotes ? `  Delivery notes: ${deliveryNotes}` : ``,
     isDelivery && !delivery.calculated ? `  (!) Delivery distance couldn't be auto-calculated — please verify.` : ``,
     vegCount > 0 ? `  Vegetarian: ${vegCount} people` : ``,
     gfCount > 0 ? `  Gluten-free: ${gfCount} people` : ``,
