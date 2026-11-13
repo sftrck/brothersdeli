@@ -207,14 +207,19 @@ export default function CheckoutPage() {
     <>
       <SiteHeader />
 
-      <div className="page-intro">
-        <div className="wrap">
-          <p className="eyebrow">Checkout</p>
-          <h1>Complete Your Order</h1>
+      {!session && (
+        <div className="page-intro">
+          <div className="wrap">
+            <p className="eyebrow">Checkout</p>
+            <h1>Complete Your Order</h1>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="wrap" style={{ paddingBlock: 48, maxWidth: session ? 880 : 640 }}>
+      <div
+        className="wrap"
+        style={{ paddingBlock: session ? 20 : 48, maxWidth: session ? 880 : 640 }}
+      >
         {!loaded ? null : approved ? (
           <div className="confirm" style={{ margin: 0 }}>
             <div className="tick">✓</div>
