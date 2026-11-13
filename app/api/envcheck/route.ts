@@ -9,7 +9,6 @@ export async function GET() {
     hasApiKey: Boolean(process.env.NORTH_API_KEY),
     hasCheckoutId: Boolean(process.env.NORTH_CHECKOUT_ID),
     hasProfileId: Boolean(process.env.NORTH_PROFILE_ID),
-    // Last 6 chars of the (public, non-secret) identifiers to confirm values.
     checkoutIdTail: (process.env.NORTH_CHECKOUT_ID || "").slice(-6) || null,
     profileIdTail: (process.env.NORTH_PROFILE_ID || "").slice(-6) || null,
   });
