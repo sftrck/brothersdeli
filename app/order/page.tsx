@@ -330,7 +330,7 @@ export default function OrderPage() {
             ]
               .filter(Boolean)
               .join(" · ") || undefined,
-          amount: l.unit * l.qty,
+          amount: Math.round(l.unit * l.qty * 100) / 100,
         }));
       if (
         fulfillment === "delivery" &&

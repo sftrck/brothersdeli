@@ -34,6 +34,10 @@ type OrderIn = {
 function money(n: number) {
   return `$${n.toFixed(2)}`;
 }
+// Round to whole cents so stored/charged totals match the displayed figures.
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
 
 export async function POST(req: NextRequest) {
   if (rateLimited(req)) {
@@ -107,7 +111,7 @@ export async function POST(req: NextRequest) {
         modLabels.push(choice.label);
       }
     }
-    total += unit * qty;
+    total = round2(total + unit * qty);
     lines.push({
       label,
       qty,
@@ -139,7 +143,7 @@ export async function POST(req: NextRequest) {
         ? { lat: Number(body.addressLat), lng: Number(body.addressLng) }
         : undefined;
     delivery = await deliveryFee(oneLine(body.address, 300), coords);
-    total += delivery.fee;
+    total = round2(total + delivery.fee);
     if (delivery.durationMin != null) {
       const etaMin = delivery.durationMin + PREP_MINUTES;
       const when = new Date(Date.now() + etaMin * 60000).toLocaleTimeString(

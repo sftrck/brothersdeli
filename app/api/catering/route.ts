@@ -30,6 +30,11 @@ type CateringIn = {
 function money(n: number) {
   return `$${n.toFixed(2)}`;
 }
+// Round to whole cents so stored/charged totals match the displayed figures
+// (no 409.79999999999995).
+function round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
 function count(v: unknown, max = MAX_HEADCOUNT) {
   return Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
 }
@@ -168,9 +173,10 @@ export async function POST(req: NextRequest) {
   const gfCount = count(body.gfCount, headcount);
   const utensils = Boolean(body.utensils);
 
-  const perPersonSum = chosen.reduce((s, it) => s + it.perPerson, 0);
-  const foodTotal = perPersonSum * headcount;
-  const gfUpcharge = gfCount * GF_PER_PERSON;
+  const foodTotal = round2(
+    chosen.reduce((s, it) => s + round2(it.perPerson * headcount), 0)
+  );
+  const gfUpcharge = round2(gfCount * GF_PER_PERSON);
 
   let delivery: DeliveryQuote = { fee: 0, calculated: true };
   if (isDelivery) {
@@ -180,7 +186,7 @@ export async function POST(req: NextRequest) {
         : undefined;
     delivery = await deliveryFee(address, coords, 30);
   }
-  const total = foodTotal + gfUpcharge + delivery.fee;
+  const total = round2(foodTotal + gfUpcharge + delivery.fee);
 
   const inquiryId = `CAT-${Date.now().toString(36).toUpperCase()}`;
 
@@ -194,7 +200,7 @@ export async function POST(req: NextRequest) {
       detail:
         `${money(it.perPerson)}/pp × ${headcount}` +
         (it.names ? ` · Names: ${it.names}` : ""),
-      amount: it.perPerson * headcount,
+      amount: round2(it.perPerson * headcount),
     })
   );
   if (gfUpcharge > 0) {
