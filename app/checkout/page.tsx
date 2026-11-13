@@ -65,6 +65,8 @@ export default function CheckoutPage() {
   const [approved, setApproved] = useState(false);
   const [session, setSession] = useState<NorthSession | null>(null);
   const [fieldsReady, setFieldsReady] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [useInterim, setUseInterim] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -112,11 +114,20 @@ export default function CheckoutPage() {
     }
   }
 
-  // Step 1: start checkout — create a session (embedded) or fall back to link.
-  async function startCheckout() {
+  // As soon as the order loads (customer arrives here from "Continue to
+  // Checkout" / "Complete Catering Purchase"), bring up the card form — create
+  // an embedded session, or fall back to the interim payment-link button.
+  useEffect(() => {
+    if (!loaded || !order) return;
+    if (session || linkPay || pending || approved || useInterim || preparing) return;
+    prepare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, order]);
+
+  async function prepare() {
     if (!order) return;
+    setPreparing(true);
     setError("");
-    setPaying(true);
     try {
       const res = await fetch("/api/pay", {
         method: "POST",
@@ -128,26 +139,31 @@ export default function CheckoutPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (res.ok && data.ok && data.configured && data.session) {
+        setSession(data.session as NorthSession); // card form mounts (effect)
+      } else if (PAYMENT_LINK) {
+        setUseInterim(true); // show the interim "Pay" button (popup needs a click)
+        if (!res.ok || !data.ok) setError(data.error || "");
+      } else if (res.ok && data.ok) {
+        setPending(true);
+        clearSaved();
+      } else {
         setError(data.error || "Couldn't start checkout. Please call the deli.");
-        return;
       }
-      if (data.configured && data.session) {
-        setSession(data.session as NorthSession);
-        return;
-      }
-      if (PAYMENT_LINK) {
-        window.open(PAYMENT_LINK, "_blank", "noopener,noreferrer");
-        setLinkPay(true);
-        return;
-      }
-      setPending(true);
-      clearSaved();
     } catch {
-      setError("Network error. Please call (612) 314-8007 to finish your order.");
+      if (PAYMENT_LINK) setUseInterim(true);
+      else setError("Network error. Please call (612) 314-8007 to finish your order.");
     } finally {
-      setPaying(false);
+      setPreparing(false);
     }
+  }
+
+  // Interim fallback: open the Payanywhere payment link (needs a user click so
+  // the popup isn't blocked).
+  function startInterim() {
+    if (!PAYMENT_LINK) return;
+    window.open(PAYMENT_LINK, "_blank", "noopener,noreferrer");
+    setLinkPay(true);
   }
 
   // Step 2: submit the card, then verify + fulfill server-side.
@@ -348,8 +364,14 @@ export default function CheckoutPage() {
 
             {error && <div className="form-err">{error}</div>}
 
-            <button className="submit-btn" onClick={startCheckout} disabled={paying}>
-              {paying ? "Starting checkout…" : `Pay with Payanywhere · ${money(order.total)}`}
+            <button
+              className="submit-btn"
+              onClick={startInterim}
+              disabled={preparing || paying}
+            >
+              {preparing
+                ? "Preparing secure checkout…"
+                : `Pay with Payanywhere · ${money(order.total)}`}
             </button>
             <p className="co-secure">Secure card checkout powered by Payanywhere.</p>
             <p style={{ textAlign: "center", marginTop: 12 }}>

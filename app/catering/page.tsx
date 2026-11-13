@@ -723,7 +723,7 @@ export default function CateringPage() {
               {error && <div className="form-err">{error}</div>}
 
               <button className="submit-btn" onClick={submit} disabled={submitting}>
-                {submitting ? "Starting checkout…" : "Complete Catering Purchase"}
+                {submitting ? "Starting checkout…" : "Continue to Checkout"}
               </button>
             </div>
           </div>
