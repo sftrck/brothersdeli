@@ -147,9 +147,9 @@ export const CATERING: CateringGroup[] = [
       { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }, { id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
-      { id: "cookies-tray", name: "Cookies", perPerson: 4.99, sizes: [{ label: "Big cookie", price: 4.99 }, { label: "Small cookie (cut in half)", price: 2.25 }] },
-      { id: "brownies-tray", name: "Brownies", perPerson: 7.95, sizes: [{ label: "Big brownie", price: 7.95 }, { label: "Small brownie (cut in half)", price: 3.95 }] },
-      { id: "bars-tray", name: "Bars", perPerson: 7.95, sizes: [{ label: "Big bar", price: 7.95 }, { label: "Small bar (cut in half)", price: 3.95 }] },
+      { id: "cookies-tray", name: "Cookies", perPerson: 4.99, sizes: [{ label: "Big cookie", price: 4.99 }, { label: "Small cookie", price: 2.25 }] },
+      { id: "brownies-tray", name: "Brownies", perPerson: 7.95, sizes: [{ label: "Big brownie", price: 7.95 }, { label: "Small brownie", price: 3.95 }] },
+      { id: "bars-tray", name: "Bars", perPerson: 7.95, sizes: [{ label: "Big bar", price: 7.95 }, { label: "Small bar", price: 3.95 }] },
     ],
   },
 ];
