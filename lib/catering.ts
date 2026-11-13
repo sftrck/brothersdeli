@@ -141,8 +141,8 @@ export const CATERING: CateringGroup[] = [
       { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }, { id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
-      { id: "cookies-tray", name: "Cookies", perPerson: 4.45 },
-      { id: "brownies-bars-tray", name: "Brownies & Bars", perPerson: 7.95 },
+      { id: "cookies-tray", name: "Cookies", perPerson: 4.45, chooses: [{ id: "size", label: "Cookie size", options: ["Big cookies", "Small cookies (cut in half)"] }] },
+      { id: "brownies-bars-tray", name: "Brownies & Bars", perPerson: 7.95, chooses: [{ id: "size", label: "Size", options: ["Big", "Small (cut in half)"] }] },
     ],
   },
 ];
