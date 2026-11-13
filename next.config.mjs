@@ -17,6 +17,8 @@ const csp = [
   `img-src 'self' data: ${NORTH}`,
   `frame-src https://www.google.com https://maps.google.com ${NORTH}`,
   `connect-src 'self' ${NORTH}`,
+  // North's fraud/fingerprint agent spins up a Web Worker from a blob: URL.
+  `worker-src 'self' blob: ${NORTH}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
