@@ -51,7 +51,7 @@ export const DELUXE_BOX_SANDWICHES = [
   ...DELUXE_QUICK_PICKS,
   ...SANDWICH_NAMES.filter((n) => !DELUXE_QUICK_PICKS.includes(n)),
 ];
-// A size option with its own price (e.g. big vs. a half). When an item has
+// A size option with its own price (e.g. big vs. small). When an item has
 // sizes, the selected size's price replaces perPerson in the headcount math.
 export type CateringSize = { label: string; price: number };
 export type CateringItem = {
@@ -60,7 +60,7 @@ export type CateringItem = {
   desc?: string;
   // Per-person price (× headcount). For sized items this is the default size.
   perPerson: number;
-  // Two sizes/prices like the main menu (big vs. cut in half).
+  // Two sizes/prices like the main menu (big vs. small).
   sizes?: CateringSize[];
   // Some trays require one or more choices (which salad, which side[s]).
   chooses?: CateringChoice[];

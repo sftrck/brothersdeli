@@ -338,7 +338,7 @@ export const MENU: MenuCategory[] = [
       {
         id: "small-cookie",
         name: "Small Cookie",
-        desc: "A big cookie cut in half — choose your flavor.",
+        desc: "Choose your flavor.",
         price: 2.25,
         options: [
           {
@@ -350,9 +350,9 @@ export const MENU: MenuCategory[] = [
         ],
       },
       { id: "big-brownie", name: "Big Brownie", price: 7.95 },
-      { id: "small-brownie", name: "Small Brownie", desc: "A big brownie cut in half.", price: 3.95 },
+      { id: "small-brownie", name: "Small Brownie", price: 3.95 },
       { id: "big-bar", name: "Big Bar", price: 7.95 },
-      { id: "small-bar", name: "Small Bar", desc: "A big bar cut in half.", price: 3.95 },
+      { id: "small-bar", name: "Small Bar", price: 3.95 },
     ],
   },
   {
