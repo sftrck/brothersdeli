@@ -349,10 +349,8 @@ export const MENU: MenuCategory[] = [
           },
         ],
       },
-      { id: "big-brownie", name: "Big Brownie", price: 7.95 },
-      { id: "small-brownie", name: "Small Brownie", price: 3.95 },
-      { id: "big-bar", name: "Big Bar", price: 7.95 },
-      { id: "small-bar", name: "Small Bar", price: 3.95 },
+      { id: "big-brownie-bar", name: "Big Brownie or Bar", price: 7.95 },
+      { id: "small-brownie-bar", name: "Small Brownie or Bar", price: 3.95 },
     ],
   },
   {

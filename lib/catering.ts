@@ -148,8 +148,7 @@ export const CATERING: CateringGroup[] = [
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
       { id: "cookies-tray", name: "Cookies", perPerson: 4.99, sizes: [{ label: "Big cookie", price: 4.99 }, { label: "Small cookie", price: 2.25 }] },
-      { id: "brownies-tray", name: "Brownies", perPerson: 7.95, sizes: [{ label: "Big brownie", price: 7.95 }, { label: "Small brownie", price: 3.95 }] },
-      { id: "bars-tray", name: "Bars", perPerson: 7.95, sizes: [{ label: "Big bar", price: 7.95 }, { label: "Small bar", price: 3.95 }] },
+      { id: "brownies-bars-tray", name: "Brownies or Bars", perPerson: 7.95, sizes: [{ label: "Big", price: 7.95 }, { label: "Small", price: 3.95 }] },
     ],
   },
 ];
