@@ -572,8 +572,8 @@ export default function OrderPage() {
                     />
                     <p className="eta-note">
                       {addrCoords
-                        ? "Address confirmed — we'll quote your delivery fee and time at checkout (about 25 min of prep plus drive time)."
-                        : "Pick your address from the list so we can quote delivery."}
+                        ? "Address confirmed — $25 flat delivery fee, added at checkout (about 25 min of prep plus drive time)."
+                        : "Pick your address from the list to set up delivery."}
                     </p>
                   </div>
                 )}
@@ -608,7 +608,7 @@ export default function OrderPage() {
                   </div>
                   <div className="tax-note">
                     {fulfillment === "delivery"
-                      ? "Tax and any delivery fee confirmed by the deli."
+                      ? "$25 flat delivery fee added at checkout. Tax confirmed by the deli."
                       : "Tax added at the register."}
                   </div>
                   <button

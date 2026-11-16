@@ -579,7 +579,7 @@ export default function CateringPage() {
                   </div>
                   <div className="est-note">
                     {fulfillment === "delivery"
-                      ? "Delivery fee is calculated by distance at checkout. "
+                      ? "$25 flat delivery fee added at checkout. "
                       : ""}
                     Tax not included.
                   </div>
@@ -620,8 +620,8 @@ export default function CateringPage() {
                   />
                   <p className="eta-note">
                     {addrCoords
-                      ? "Address confirmed — we'll quote your delivery fee by distance at checkout."
-                      : "Pick your address from the list so we can quote delivery."}
+                      ? "Address confirmed — $25 flat delivery fee, added at checkout."
+                      : "Pick your address from the list to set up delivery."}
                   </p>
                   <label style={{ marginTop: 12 }}>
                     Suite / floor, entry code, other delivery notes

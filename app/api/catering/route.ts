@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
       Number.isFinite(body.addressLat) && Number.isFinite(body.addressLng)
         ? { lat: Number(body.addressLat), lng: Number(body.addressLng) }
         : undefined;
-    delivery = await deliveryFee(address, coords, 30);
+    delivery = await deliveryFee(address, coords);
   }
   const total = round2(foodTotal + gfUpcharge + delivery.fee);
 

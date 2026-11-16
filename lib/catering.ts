@@ -130,7 +130,7 @@ export const CATERING: CateringGroup[] = [
     id: "box-lunches",
     name: "Box Lunches",
     items: [
-      { id: "budget-box-lunch", name: "Budget Box Lunch", desc: "Deli sandwich, chips and a sweet", perPerson: 16.99, names: true, chooses: [{ id: "sandwiches", label: "Sandwiches — pick a quantity of each", options: BUDGET_BOX_SANDWICHES, qty: true }] },
+      { id: "budget-box-lunch", name: "Budget Box Lunch", desc: "Deli sandwich, chips and a sweet", perPerson: 15.99, names: true, chooses: [{ id: "sandwiches", label: "Sandwiches — pick a quantity of each", options: BUDGET_BOX_SANDWICHES, qty: true }] },
       { id: "deluxe-box-lunch", name: "Deluxe Box Lunch", desc: "Any sandwich, apple, potato salad or chips, and a sweet", perPerson: 17.99, names: true, chooses: [{ id: "sandwiches", label: "Sandwiches — pick a quantity of each", options: DELUXE_BOX_SANDWICHES, qty: true }] },
       { id: "salad-box-lunch", name: "Salad Box Lunch", desc: "Any salad with a popover, apple and a sweet", perPerson: 17.99, names: true, chooses: [{ id: "salads", label: "Salads — pick a quantity of each", options: CATERING_SALADS, qty: true }] },
     ],
@@ -144,11 +144,11 @@ export const CATERING: CateringGroup[] = [
       { id: "budget-sandwich-tray", name: "Budget Sandwich Tray", desc: "A variety of sandwiches with cheese, lettuce, tomatoes, condiments and kosher dill, plus a mini dessert. Served with two sides.", perPerson: 17.99, chooses: [{ id: "side1", label: "First side", options: BUDGET_SIDES }, { id: "side2", label: "Second side", options: BUDGET_SIDES }, { id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }] },
       { id: "sandwich-tray", name: "Sandwich Tray", desc: "Variety of sandwiches, cheese and dills", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }, { id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }] },
       { id: "wrap-sandwich-tray", name: "Wrap Sandwich Tray", desc: "Any sandwich or salad can be made into a wrap — your pick or the deli's.", perPerson: 14.99, chooses: [{ id: "side", label: "Choose a side", options: CATERING_SIDES }, { id: "sandwiches", label: "Pick your wraps (or let the deli decide)", options: WRAP_TRAY_SANDWICHES, multi: true }] },
-      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }, { id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
+      { id: "mini-sandwich-salad-tray", name: "Mini Sandwich & Salad Tray", desc: "Mini sandwiches and chips plus a salad. Orders of 20 or more can pick a second salad.", perPerson: 14.99, chooses: [{ id: "sandwiches", label: "Pick your sandwiches (or let the deli decide)", options: BUDGET_BOX_SANDWICHES, multi: true }, { id: "salad", label: "Choose a salad", options: CATERING_SALADS }, { id: "salad2", label: "Second salad (20+ people)", options: [NO_SECOND_SALAD, ...CATERING_SALADS], minHeadcount: 20 }] },
       { id: "vegetable-tray", name: "Vegetable Tray", perPerson: 5.95 },
       { id: "fresh-fruit-tray", name: "Fresh Fruit Tray", desc: "Seasonal melons, pineapple, grapes and more", perPerson: 6.45 },
       { id: "cookies-tray", name: "Cookies", perPerson: 4.99, sizes: [{ label: "Big cookie", price: 4.99 }, { label: "Small cookie", price: 2.25 }] },
-      { id: "brownies-bars-tray", name: "Brownies or Bars", perPerson: 7.95, sizes: [{ label: "Big", price: 7.95 }, { label: "Small", price: 3.95 }] },
+      { id: "brownies-bars-tray", name: "Brownie & Bar Tray", perPerson: 7.95 },
     ],
   },
 ];
